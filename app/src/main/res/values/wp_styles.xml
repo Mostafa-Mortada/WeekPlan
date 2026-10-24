@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WP" parent="@android:style/Widget.TextView" />
+
+    <!-- Body text: JetBrains Mono, like the website. -->
+    <style name="WP.Text">
+        <item name="android:fontFamily">@font/jetbrains_mono</item>
+        <item name="android:textColor">@color/wp_ink</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="WP.Text.Small">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- Headings: Space Grotesk bold. -->
+    <style name="WP.Text.Display">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <!-- Small uppercase tag, like .chip / .tag on the website. -->
+    <style name="WP.Text.Chip">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
+    </style>
+
+    <!-- Like .btn: bold uppercase label in a bordered box. 48dp tall for easy tapping. -->
+    <style name="WP.Text.Button">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+</resources>

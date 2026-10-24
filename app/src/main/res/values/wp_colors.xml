@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Palette copied from the WeekPlan website (src/styles/tokens.css). -->
+<resources>
+    <color name="wp_ink">#000000</color>
+    <color name="wp_paper">#FFFFFF</color>
+    <color name="wp_bg">#F4F4F4</color>
+    <color name="wp_yellow">#FFE600</color>
+    <color name="wp_green">#00F58A</color>
+    <color name="wp_blue">#3B82F6</color>
+    <color name="wp_pink">#FF6BD6</color>
+    <color name="wp_orange">#FF8A3D</color>
+    <color name="wp_purple">#B794F6</color>
+    <color name="wp_skeleton">#E2E2E2</color>
+</resources>

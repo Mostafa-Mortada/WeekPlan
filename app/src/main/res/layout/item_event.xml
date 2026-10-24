@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Event card: like .block on the website; fill color comes from EventColors (set in code). -->
+<com.weekplan.reminders.ui.NeoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    app:neoFill="@color/wp_yellow"
+    app:neoShadow="3dp">
+
+    <!-- Time column -->
+    <LinearLayout
+        android:layout_width="82dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/event_start"
+            style="@style/WP.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="10:00 AM" />
+
+        <TextView
+            android:id="@+id/event_end"
+            style="@style/WP.Text.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="11sp"
+            tools:text="→ 12:00 PM" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="2dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"
+        android:background="@color/wp_ink"
+        android:importantForAccessibility="no" />
+
+    <!-- Title, tags -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <com.weekplan.reminders.ui.NeoTextView
+            android:id="@+id/event_overlap"
+            style="@style/WP.Text.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="@string/planner_overlap"
+            android:visibility="gone"
+            app:neoFill="@color/wp_pink"
+            app:neoShadow="2dp"
+            app:neoStroke="2dp" />
+
+        <TextView
+            android:id="@+id/event_title"
+            style="@style/WP.Text.Display"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/wp_ink"
+            android:textSize="16sp"
+            tools:text="Study session" />
+
+        <TextView
+            android:id="@+id/event_meta"
+            style="@style/WP.Text.Small"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textSize="11sp"
+            tools:text="↻ Daily · Reminder: 15 min before" />
+    </LinearLayout>
+</com.weekplan.reminders.ui.NeoLinearLayout>

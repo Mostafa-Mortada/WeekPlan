@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Loading placeholder; the adapter pulses its alpha while it is on screen. -->
+<com.weekplan.reminders.ui.NeoFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="76dp"
+    android:layout_marginTop="14dp"
+    android:importantForAccessibility="no"
+    app:neoFill="@color/wp_skeleton"
+    app:neoShadow="3dp" />

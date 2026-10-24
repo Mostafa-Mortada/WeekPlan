@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="planner_brand">weekplan</string>
+    <string name="planner_tag">Reminders</string>
+    <string name="planner_tagline">Organize your hours, optimize your week.</string>
+
+    <!-- Week controls -->
+    <string name="planner_prev">‹ Prev</string>
+    <string name="planner_today">Today</string>
+    <string name="planner_next">Next ›</string>
+    <string name="planner_cd_prev">Previous week</string>
+    <string name="planner_cd_today_button">Back to this week</string>
+    <string name="planner_cd_next">Next week</string>
+    <string name="planner_rel_this_week">This week</string>
+    <string name="planner_rel_next_week">Next week</string>
+    <string name="planner_rel_last_week">Last week</string>
+    <plurals name="planner_rel_future">
+        <item quantity="one">In %d week</item>
+        <item quantity="other">In %d weeks</item>
+    </plurals>
+    <plurals name="planner_rel_past">
+        <item quantity="one">%d week ago</item>
+        <item quantity="other">%d weeks ago</item>
+    </plurals>
+
+    <!-- Day headers -->
+    <string name="planner_badge_today">Today</string>
+    <string name="planner_cd_today">today</string>
+    <string name="planner_no_events">No events</string>
+    <plurals name="planner_event_count">
+        <item quantity="one">%d event</item>
+        <item quantity="other">%d events</item>
+    </plurals>
+    <string name="planner_day_subtitle">%1$s · %2$s</string>
+    <string name="planner_add_event_cd">Add event on %1$s</string>
+    <string name="planner_empty_day">Nothing planned</string>
+
+    <!-- Event cards -->
+    <string name="planner_time_to">→ %s</string>
+    <string name="planner_overlap">Overlaps</string>
+    <string name="planner_cd_overlap">overlaps another event</string>
+    <string name="planner_cd_event">%1$s, %2$s to %3$s</string>
+    <string name="planner_repeat_daily">↻ Daily</string>
+    <string name="planner_repeat_weekly">↻ Weekly</string>
+    <string name="planner_repeat_days">↻ %s</string>
+    <string name="planner_reminder_at_start">Reminder: at start</string>
+    <string name="planner_reminder_before">Reminder: %d min before</string>
+
+    <!-- Whole-week empty state and errors -->
+    <string name="planner_week_empty_title">Your week is clear</string>
+    <string name="planner_week_empty_body">Add an event and it will show up under its day.</string>
+    <string name="planner_add_event">+ Add event</string>
+    <string name="planner_error_title">Couldn\'t load this week</string>
+    <string name="planner_error_body">Something went wrong while reading your events.</string>
+    <string name="planner_retry">Retry</string>
+</resources>

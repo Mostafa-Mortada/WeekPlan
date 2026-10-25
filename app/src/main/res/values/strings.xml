@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Week Plan Pro</string>
+    <string name="event_form_title">Add Event</string>
+    <string name="event_form_subtitle">Plan something for your week.</string>
+    <string name="event_title_label">Event title *</string>
+    <string name="event_title_hint">e.g. Math Quiz</string>
+    <string name="event_date_label">Date *</string>
+    <string name="event_date_choose">Choose date</string>
+    <string name="event_start_time_label">Start time *</string>
+    <string name="event_start_time_choose">Choose start time</string>
+    <string name="event_end_time_label">End time *</string>
+    <string name="event_end_time_choose">Choose end time</string>
+    <string name="event_notes_label">Notes (optional)</string>
+    <string name="event_notes_hint">Add some details...</string>
+    <string name="event_cancel">Cancel</string>
+    <string name="event_save">Save Event</string>
+    <string name="event_error_title_required">Please enter an event title.</string>
+    <string name="event_error_time_order">End time must be after start time.</string>
+    <string name="event_error_save">Couldn’t save the event. Please try again.</string>
 </resources>

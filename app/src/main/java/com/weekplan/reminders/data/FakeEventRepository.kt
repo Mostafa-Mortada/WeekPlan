@@ -29,11 +29,12 @@ class FakeEventRepository(
         return events.flatMap { Recurrence.expand(it, from, to) }
     }
 
-    // Helpers to try "the planner refreshes after changes" by hand; Member 2 / 4 do the real ones.
-    fun add(event: Event) {
+    override suspend fun createEvent(event: Event) {
         events = events + event
-        _changes.tryEmit(Unit)
+        _changes.emit(Unit)
     }
+
+    // Helpers to try "the planner refreshes after changes" by hand; Member 2 / 4 do the real ones.
 
     fun delete(eventId: String) {
         events = events.filterNot { it.id == eventId }

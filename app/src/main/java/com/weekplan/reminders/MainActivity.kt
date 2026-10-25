@@ -36,7 +36,11 @@ class MainActivity : AppCompatActivity(), PlannerNavigator {
         Toast.makeText(this, "TODO details: $eventId on $occurrenceDate", Toast.LENGTH_SHORT).show()
     }
 
+
     override fun openAddEvent(date: LocalDate) {
-        Toast.makeText(this, "TODO add form for $date", Toast.LENGTH_SHORT).show()
+        supportFragmentManager.commit {
+            replace(R.id.planner_container, EventFormFragment.newInstance(date))
+            addToBackStack("event_form")
+        }
     }
 }

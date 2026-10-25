@@ -1,6 +1,7 @@
 package com.weekplan.reminders.data
 
 import com.weekplan.reminders.data.model.EventOccurrence
+import com.weekplan.reminders.data.model.Event
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -16,4 +17,12 @@ interface EventRepository {
 
     /** Occurrences from [from] to [to], both inclusive, recurring events already expanded. */
     suspend fun getOccurrences(from: LocalDate, to: LocalDate): List<EventOccurrence>
+    suspend fun createEvent(event: Event)
 }
+
+
+
+
+
+
+

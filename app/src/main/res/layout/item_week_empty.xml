@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.weekplan.reminders.ui.NeoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="18dp"
+    android:orientation="vertical"
+    android:padding="16dp"
+    app:neoFill="@color/wp_yellow"
+    app:neoShadow="4dp">
+
+    <TextView
+        style="@style/WP.Text.Display"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/planner_week_empty_title"
+        android:textColor="@color/wp_ink"
+        android:textSize="20sp" />
+
+    <TextView
+        style="@style/WP.Text.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/planner_week_empty_body" />
+
+    <com.weekplan.reminders.ui.NeoTextView
+        android:id="@+id/week_empty_add"
+        style="@style/WP.Text.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="@string/planner_add_event"
+        app:neoFill="@color/wp_green" />
+</com.weekplan.reminders.ui.NeoLinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Used by NeoTextView / NeoLinearLayout / NeoFrameLayout. -->
+    <declare-styleable name="Neo">
+        <attr name="neoFill" format="color" />
+        <attr name="neoStroke" format="dimension" />
+        <attr name="neoShadow" format="dimension" />
+        <attr name="neoDashed" format="boolean" />
+    </declare-styleable>
+</resources>

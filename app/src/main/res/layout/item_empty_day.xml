@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dashed empty slot, like the website's empty .slot / .empty box. -->
+<com.weekplan.reminders.ui.NeoTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/WP.Text.Small"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:gravity="center"
+    android:padding="12dp"
+    android:text="@string/planner_empty_day"
+    app:neoDashed="true"
+    app:neoFill="@color/wp_bg"
+    app:neoShadow="0dp"
+    app:neoStroke="2dp" />

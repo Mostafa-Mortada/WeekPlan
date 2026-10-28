@@ -9,7 +9,7 @@ import java.time.LocalDate
 interface PlannerNavigator {
 
     /** An event was tapped. [occurrenceDate] says which day of a recurring series was tapped. */
-    fun openEventDetails(eventId: String, occurrenceDate: LocalDate)
+    fun openEventDetails(eventId: Long, occurrenceDate: LocalDate)
 
     /** Open the add form with [date] already filled in. */
     fun openAddEvent(date: LocalDate)

@@ -1,6 +1,6 @@
 package com.weekplan.reminders.planner
 
-import com.weekplan.reminders.data.model.EventOccurrence
+import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import java.time.LocalDate
 
 /** One line of the planner list. [key] identifies the row across refreshes (for DiffUtil). */
@@ -11,8 +11,8 @@ sealed interface PlannerRow {
         override val key get() = "day-$date"
     }
 
-    data class Event(val occurrence: EventOccurrence, val overlaps: Boolean) : PlannerRow {
-        override val key get() = "event-${occurrence.eventId}-${occurrence.occurrenceDate}"
+    data class Event(val item: OccurrenceWithEvent, val overlaps: Boolean) : PlannerRow {
+        override val key get() = "event-${item.occurrence.eventId}-${item.occurrence.occurrenceDate}"
     }
 
     data class EmptyDay(val date: LocalDate) : PlannerRow {

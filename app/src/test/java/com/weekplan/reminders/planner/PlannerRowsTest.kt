@@ -1,9 +1,10 @@
 package com.weekplan.reminders.planner
 
-import com.weekplan.reminders.data.Recurrence
+import com.weekplan.reminders.data.recurrence.Recurrence
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.EventOccurrence
-import com.weekplan.reminders.data.model.RepeatFrequency
+import com.weekplan.reminders.data.model.Frequency
+import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import com.weekplan.reminders.data.model.RepeatRule
 import java.time.LocalDate
 import java.time.LocalTime
@@ -18,11 +19,15 @@ class PlannerRowsTest {
     private val monday = LocalDate.of(2026, 10, 19)
     private val wednesday = LocalDate.of(2026, 10, 21)
 
-    private fun occ(id: String, date: LocalDate, start: LocalTime, end: LocalTime, title: String = id) =
-        EventOccurrence(Event(id, title, date, start, end), date)
+    private fun occ(id: String, date: LocalDate, start: LocalTime, end: LocalTime, title: String = id): OccurrenceWithEvent {
+        val eventId = id.hashCode().toLong()
+        val event = Event(eventId, title, date, start, end)
+        val occurrence = EventOccurrence(eventId, date, date.atTime(start), date.atTime(end))
+        return OccurrenceWithEvent(event, occurrence)
+    }
 
     private fun build(
-        occurrences: List<EventOccurrence>,
+        occurrences: List<OccurrenceWithEvent>,
         today: LocalDate = wednesday,
         weekStart: LocalDate = monday,
     ) = PlannerRows.build(weekStart, today, PlannerStatus.CONTENT, occurrences)
@@ -64,7 +69,7 @@ class PlannerRowsTest {
         val late = occ("late", wednesday, LocalTime.of(18, 0), LocalTime.of(19, 0))
         val early = occ("early", wednesday, LocalTime.of(8, 0), LocalTime.of(9, 0))
         val mid = occ("mid", wednesday, LocalTime.of(12, 0), LocalTime.of(13, 0))
-        val order = build(listOf(late, early, mid)).events().map { it.occurrence.eventId }
+        val order = build(listOf(late, early, mid)).events().map { it.item.event.title }
         assertEquals(listOf("early", "mid", "late"), order)
     }
 
@@ -73,7 +78,7 @@ class PlannerRowsTest {
         val b = occ("b", wednesday, LocalTime.of(9, 0), LocalTime.of(10, 0), title = "Beta")
         val a = occ("a", wednesday, LocalTime.of(9, 0), LocalTime.of(10, 0), title = "alpha")
         val short = occ("s", wednesday, LocalTime.of(9, 0), LocalTime.of(9, 30), title = "Zed")
-        val order = build(listOf(b, a, short)).events().map { it.occurrence.eventId }
+        val order = build(listOf(b, a, short)).events().map { it.item.event.title }
         assertEquals(listOf("s", "a", "b"), order)
     }
 
@@ -84,7 +89,7 @@ class PlannerRowsTest {
         val inside = occ("in", wednesday, LocalTime.of(9, 0), LocalTime.of(10, 0))
         val before = occ("before", monday.minusDays(1), LocalTime.of(9, 0), LocalTime.of(10, 0))
         val after = occ("after", monday.plusDays(7), LocalTime.of(9, 0), LocalTime.of(10, 0))
-        val ids = build(listOf(before, inside, after)).events().map { it.occurrence.eventId }
+        val ids = build(listOf(before, inside, after)).events().map { it.item.event.title }
         assertEquals(listOf("in"), ids)
     }
 
@@ -94,16 +99,18 @@ class PlannerRowsTest {
         val dec31 = occ("dec", LocalDate.of(2026, 12, 31), LocalTime.of(9, 0), LocalTime.of(10, 0))
         val jan2 = occ("jan", LocalDate.of(2027, 1, 2), LocalTime.of(9, 0), LocalTime.of(10, 0))
         val state = build(listOf(dec31, jan2), today = weekStart, weekStart = weekStart)
-        assertEquals(listOf("dec", "jan"), state.events().map { it.occurrence.eventId })
+        assertEquals(listOf("dec", "jan"), state.events().map { it.item.event.title })
     }
 
     @Test
     fun recurringOccurrencesLandOnTheRightDays() {
         val daily = Event(
-            "d", "Daily", monday.minusDays(2), LocalTime.of(8, 0), LocalTime.of(8, 30),
-            repeatRule = RepeatRule(RepeatFrequency.DAILY),
+            1L, "Daily", monday.minusDays(2), LocalTime.of(8, 0), LocalTime.of(8, 30),
+            repeatRule = RepeatRule(Frequency.DAILY),
         )
-        val occurrences = Recurrence.expand(daily, monday, monday.plusDays(6))
+        val occurrences = Recurrence.expand(daily, monday, monday.plusDays(6)).map {
+            OccurrenceWithEvent(daily, it)
+        }
         val state = build(occurrences)
         val headers = state.rows.filterIsInstance<PlannerRow.DayHeader>()
         assertTrue(headers.all { it.eventCount == 1 })

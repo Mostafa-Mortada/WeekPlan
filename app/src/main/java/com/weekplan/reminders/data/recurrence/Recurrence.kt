@@ -1,8 +1,8 @@
-package com.weekplan.reminders.data
+package com.weekplan.reminders.data.recurrence
 
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.EventOccurrence
-import com.weekplan.reminders.data.model.RepeatFrequency
+import com.weekplan.reminders.data.model.Frequency
 import java.time.LocalDate
 
 /**
@@ -12,8 +12,9 @@ import java.time.LocalDate
  * can show recurring events today; replace it with the shared helper and keep the same rules:
  * - none: one occurrence on startDate
  * - daily: every day on or after startDate
- * - weekly: the weekday of startDate, on or after startDate
- * - selected weekdays: the chosen weekdays, on or after startDate
+ * - weekly with no selected weekdays: the weekday of startDate
+ * - weekly with selected weekdays: the chosen weekdays
+ * - both weekly forms begin on or after startDate
  */
 object Recurrence {
 
@@ -23,16 +24,28 @@ object Recurrence {
         val result = ArrayList<EventOccurrence>()
         var date = first
         while (!date.isAfter(to)) {
-            if (occursOn(event, date)) result.add(EventOccurrence(event, date))
+            if (occursOn(event, date)) {
+                result.add(
+                    EventOccurrence(
+                        eventId = event.id,
+                        occurrenceDate = date,
+                        startDateTime = date.atTime(event.startTime),
+                        endDateTime = date.atTime(event.endTime),
+                    ),
+                )
+            }
             date = date.plusDays(1)
         }
         return result
     }
 
     private fun occursOn(event: Event, date: LocalDate): Boolean = when (event.repeatRule.frequency) {
-        RepeatFrequency.NONE -> date == event.startDate
-        RepeatFrequency.DAILY -> true
-        RepeatFrequency.WEEKLY -> date.dayOfWeek == event.startDate.dayOfWeek
-        RepeatFrequency.SELECTED_WEEKDAYS -> date.dayOfWeek in event.repeatRule.weekdays
+        Frequency.NONE, Frequency.ONCE -> date == event.startDate
+        Frequency.DAILY -> true
+        Frequency.WEEKLY -> {
+            val selectedWeekdays = event.repeatRule.weekdays
+            if (selectedWeekdays.isEmpty()) date.dayOfWeek == event.startDate.dayOfWeek
+            else date.dayOfWeek in selectedWeekdays
+        }
     }
 }

@@ -1,7 +1,8 @@
 package com.weekplan.reminders.data
 
+import com.weekplan.reminders.data.recurrence.Recurrence
 import com.weekplan.reminders.data.model.Event
-import com.weekplan.reminders.data.model.RepeatFrequency
+import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.data.model.RepeatRule
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -12,8 +13,8 @@ import org.junit.Test
 
 class RecurrenceTest {
 
-    private fun event(start: LocalDate, rule: RepeatRule = RepeatRule.None) = Event(
-        id = "e1",
+    private fun event(start: LocalDate, rule: RepeatRule = RepeatRule()) = Event(
+        id = 1L,
         title = "Test",
         startDate = start,
         startTime = LocalTime.of(9, 0),
@@ -33,7 +34,7 @@ class RecurrenceTest {
 
     @Test
     fun rangeIsInclusiveAtBothEnds() {
-        val e = event(LocalDate.of(2026, 10, 19), RepeatRule(RepeatFrequency.DAILY))
+        val e = event(LocalDate.of(2026, 10, 19), RepeatRule(Frequency.DAILY))
         val result = dates(e, LocalDate.of(2026, 10, 19), LocalDate.of(2026, 10, 25))
         assertEquals(7, result.size)
         assertEquals(LocalDate.of(2026, 10, 19), result.first())
@@ -42,7 +43,7 @@ class RecurrenceTest {
 
     @Test
     fun dailyEvent_doesNotAppearBeforeItsStartDate() {
-        val e = event(LocalDate.of(2026, 10, 22), RepeatRule(RepeatFrequency.DAILY))
+        val e = event(LocalDate.of(2026, 10, 22), RepeatRule(Frequency.DAILY))
         val result = dates(e, LocalDate.of(2026, 10, 19), LocalDate.of(2026, 10, 25))
         assertEquals(LocalDate.of(2026, 10, 22), result.first())
         assertEquals(4, result.size)
@@ -51,7 +52,7 @@ class RecurrenceTest {
     @Test
     fun weeklyEvent_usesTheWeekdayOfItsStartDate() {
         val wednesday = LocalDate.of(2026, 10, 14)
-        val e = event(wednesday, RepeatRule(RepeatFrequency.WEEKLY))
+        val e = event(wednesday, RepeatRule(Frequency.WEEKLY))
         val result = dates(e, LocalDate.of(2026, 10, 19), LocalDate.of(2026, 11, 8))
         assertEquals(
             listOf(LocalDate.of(2026, 10, 21), LocalDate.of(2026, 10, 28), LocalDate.of(2026, 11, 4)),
@@ -62,7 +63,7 @@ class RecurrenceTest {
     @Test
     fun selectedWeekdays_startOnOrAfterTheEventStartDate() {
         val rule = RepeatRule(
-            RepeatFrequency.SELECTED_WEEKDAYS,
+            Frequency.WEEKLY,
             setOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY),
         )
         val e = event(LocalDate.of(2026, 10, 21), rule) // a Wednesday
@@ -76,7 +77,7 @@ class RecurrenceTest {
 
     @Test
     fun recurrenceContinuesAcrossMonthAndYearBoundaries() {
-        val e = event(LocalDate.of(2026, 12, 1), RepeatRule(RepeatFrequency.WEEKLY)) // Tuesday
+        val e = event(LocalDate.of(2026, 12, 1), RepeatRule(Frequency.WEEKLY)) // Tuesday
         val result = dates(e, LocalDate.of(2026, 12, 28), LocalDate.of(2027, 1, 3))
         assertEquals(listOf(LocalDate.of(2026, 12, 29)), result)
         val next = dates(e, LocalDate.of(2027, 1, 4), LocalDate.of(2027, 1, 10))
@@ -85,13 +86,13 @@ class RecurrenceTest {
 
     @Test
     fun emptyOrReversedRange_givesNothing() {
-        val e = event(LocalDate.of(2026, 10, 19), RepeatRule(RepeatFrequency.DAILY))
+        val e = event(LocalDate.of(2026, 10, 19), RepeatRule(Frequency.DAILY))
         assertTrue(dates(e, LocalDate.of(2026, 10, 25), LocalDate.of(2026, 10, 19)).isEmpty())
     }
 
     @Test
     fun occurrenceTimesComeFromTheEventAndTheOccurrenceDate() {
-        val e = event(LocalDate.of(2026, 10, 19), RepeatRule(RepeatFrequency.DAILY))
+        val e = event(LocalDate.of(2026, 10, 19), RepeatRule(Frequency.DAILY))
         val occ = Recurrence.expand(e, LocalDate.of(2026, 10, 21), LocalDate.of(2026, 10, 21)).single()
         assertEquals(LocalDate.of(2026, 10, 21).atTime(9, 0), occ.startDateTime)
         assertEquals(LocalDate.of(2026, 10, 21).atTime(10, 0), occ.endDateTime)

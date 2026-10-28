@@ -1,6 +1,6 @@
 package com.weekplan.reminders.planner
 
-import com.weekplan.reminders.data.model.EventOccurrence
+import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import java.time.LocalDate
 
 enum class PlannerStatus { LOADING, CONTENT, ERROR }
@@ -24,7 +24,7 @@ object PlannerRows {
         weekStart: LocalDate,
         today: LocalDate,
         status: PlannerStatus,
-        occurrences: List<EventOccurrence> = emptyList(),
+        occurrences: List<OccurrenceWithEvent> = emptyList(),
     ): PlannerUiState {
         val rows: List<PlannerRow> = when (status) {
             PlannerStatus.LOADING -> List(SKELETON_COUNT) { PlannerRow.Skeleton(it) }
@@ -44,11 +44,11 @@ object PlannerRows {
     private fun contentRows(
         weekStart: LocalDate,
         today: LocalDate,
-        occurrences: List<EventOccurrence>,
+        occurrences: List<OccurrenceWithEvent>,
     ): List<PlannerRow> {
         val days = WeekMath.weekDays(weekStart)
         // Only this week's occurrences, even if the repository returns more.
-        val byDay = occurrences.filter { it.occurrenceDate in days }.groupBy { it.occurrenceDate }
+        val byDay = occurrences.filter { it.occurrence.occurrenceDate in days }.groupBy { it.occurrence.occurrenceDate }
 
         val rows = ArrayList<PlannerRow>()
         if (byDay.isEmpty()) {
@@ -68,22 +68,22 @@ object PlannerRows {
     }
 
     /** By start time, then end time, then title, so the order is stable. */
-    private val ORDER = compareBy<EventOccurrence>(
-        { it.startDateTime },
-        { it.endDateTime },
+    private val ORDER = compareBy<OccurrenceWithEvent>(
+        { it.occurrence.startDateTime },
+        { it.occurrence.endDateTime },
         { it.event.title.lowercase() },
-        { it.eventId },
+        { it.occurrence.eventId },
     )
 
     /**
      * For events sorted by start: true where an event overlaps another one.
      * Events that only touch (one ends exactly when the next starts) do not overlap.
      */
-    fun overlapping(sorted: List<EventOccurrence>): BooleanArray {
+    fun overlapping(sorted: List<OccurrenceWithEvent>): BooleanArray {
         val result = BooleanArray(sorted.size)
         for (i in sorted.indices) {
             for (j in i + 1 until sorted.size) {
-                if (!sorted[j].startDateTime.isBefore(sorted[i].endDateTime)) break
+                if (!sorted[j].occurrence.startDateTime.isBefore(sorted[i].occurrence.endDateTime)) break
                 result[i] = true
                 result[j] = true
             }

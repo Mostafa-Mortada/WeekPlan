@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.weekplan.reminders.R
 import com.weekplan.reminders.data.model.Event
-import com.weekplan.reminders.data.model.RepeatFrequency
+import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.ui.EventColors
 import com.weekplan.reminders.ui.NeoLinearLayout
 import com.weekplan.reminders.ui.NeoTextView
@@ -119,8 +119,9 @@ class PlannerAdapter(
 
         fun bind(row: PlannerRow.Event) {
             val ctx = itemView.context
-            val occ = row.occurrence
-            val event = occ.event
+            val item = row.item
+            val occ = item.occurrence
+            val event = item.event
             val startText = occ.startDateTime.format(timeFormat)
             val endText = occ.endDateTime.format(timeFormat)
 
@@ -178,15 +179,17 @@ class PlannerAdapter(
     private fun metaLine(ctx: Context, event: Event): String {
         val parts = ArrayList<String>(2)
         when (event.repeatRule.frequency) {
-            RepeatFrequency.NONE -> Unit
-            RepeatFrequency.DAILY -> parts.add(ctx.getString(R.string.planner_repeat_daily))
-            RepeatFrequency.WEEKLY -> parts.add(ctx.getString(R.string.planner_repeat_weekly))
-            RepeatFrequency.SELECTED_WEEKDAYS -> {
+            Frequency.NONE, Frequency.ONCE -> Unit
+            Frequency.DAILY -> parts.add(ctx.getString(R.string.planner_repeat_daily))
+            Frequency.WEEKLY -> {
                 val days = event.repeatRule.weekdays
                     .sortedBy { it.value }
                     .joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
                 if (days.isNotEmpty()) parts.add(ctx.getString(R.string.planner_repeat_days, days))
+                else parts.add(ctx.getString(R.string.planner_repeat_weekly))
             }
+            Frequency.MONTHLY -> parts.add(ctx.getString(R.string.planner_repeat_monthly))
+            Frequency.YEARLY -> parts.add(ctx.getString(R.string.planner_repeat_yearly))
         }
         event.reminderOffsetMinutes?.let { minutes ->
             parts.add(

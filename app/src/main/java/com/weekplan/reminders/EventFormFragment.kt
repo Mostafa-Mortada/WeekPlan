@@ -16,7 +16,6 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import java.util.UUID
 
 class EventFormFragment : Fragment(R.layout.fragment_event_form) {
 
@@ -137,7 +136,6 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
             errorText.visibility = View.GONE
 
             val event = Event(
-                id = UUID.randomUUID().toString(),
                 title = title,
                 startDate = selectedDate,
                 startTime = selectedStartTime,

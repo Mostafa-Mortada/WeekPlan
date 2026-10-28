@@ -20,7 +20,7 @@ object EventColors {
         R.color.wp_purple,
     )
 
-    fun colorFor(context: Context, eventId: String): Int {
+    fun colorFor(context: Context, eventId: Long): Int {
         val index = abs(eventId.hashCode() % palette.size)
         return ContextCompat.getColor(context, palette[index])
     }

@@ -1,7 +1,8 @@
 package com.weekplan.reminders.data
 
 import com.weekplan.reminders.data.model.Event
-import com.weekplan.reminders.data.model.EventOccurrence
+import com.weekplan.reminders.data.model.Settings
+import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,24 +21,57 @@ class FakeEventRepository(
 
     @Volatile
     private var events: List<Event> = seed
+        .mapIndexed { index, event ->
+            if (event.id <= 0L) event.copy(id = index + 1L) else event
+        }
+
+    @Volatile
+    private var settings = Settings()
+
+    @Volatile
+    private var nextId = (events.maxOfOrNull { it.id } ?: 0L) + 1L
     private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     override val changes: Flow<Unit> = _changes.asSharedFlow()
 
-    override suspend fun getOccurrences(from: LocalDate, to: LocalDate): List<EventOccurrence> {
+    override suspend fun getOccurrences(from: LocalDate, to: LocalDate): List<OccurrenceWithEvent> {
         if (latencyMs > 0) delay(latencyMs)
-        return events.flatMap { Recurrence.expand(it, from, to) }
+        return events.flatMap { event ->
+            Recurrence.expand(event, from, to).map { occurrence ->
+                OccurrenceWithEvent(event, occurrence)
+            }
+        }
     }
 
-    override suspend fun createEvent(event: Event) {
-        events = events + event
+    override suspend fun createEvent(event: Event): Long {
+        val id = if (event.id > 0L) event.id else nextId++
+        events = events.filterNot { it.id == id } + event.copy(id = id)
+        _changes.emit(Unit)
+        return id
+    }
+
+    override suspend fun updateEvent(event: Event) {
+        require(event.id > 0L) { "An existing event must have a positive ID" }
+        val index = events.indexOfFirst { it.id == event.id }
+        require(index >= 0) { "Event ${event.id} does not exist" }
+        events = events.toMutableList().also { it[index] = event }
         _changes.emit(Unit)
     }
 
-    // Helpers to try "the planner refreshes after changes" by hand; Member 2 / 4 do the real ones.
+    override suspend fun deleteEvent(eventId: Long) {
+        val updated = events.filterNot { it.id == eventId }
+        if (updated.size != events.size) {
+            events = updated
+            _changes.emit(Unit)
+        }
+    }
 
-    fun delete(eventId: String) {
-        events = events.filterNot { it.id == eventId }
-        _changes.tryEmit(Unit)
+    override suspend fun getEvent(eventId: Long): Event? = events.firstOrNull { it.id == eventId }
+
+    override suspend fun getSettings(): Settings = settings
+
+    override suspend fun saveSettings(settings: Settings) {
+        this.settings = settings
+        _changes.emit(Unit)
     }
 }

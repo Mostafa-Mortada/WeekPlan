@@ -41,7 +41,7 @@ class WeeklyPlannerFragment : Fragment(R.layout.fragment_weekly_planner) {
         val next = view.findViewById<View>(R.id.week_next)
 
         val adapter = PlannerAdapter(
-            onEventClick = { row -> navigator?.openEventDetails(row.occurrence.eventId, row.occurrence.occurrenceDate) },
+            onEventClick = { row -> navigator?.openEventDetails(row.item.occurrence.eventId, row.item.occurrence.occurrenceDate) },
             onAddClick = { date -> navigator?.openAddEvent(date) },
             onRetry = viewModel::retry,
         )

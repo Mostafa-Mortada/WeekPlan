@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity(), PlannerNavigator {
         }
     }
 
-    override fun openEventDetails(eventId: String, occurrenceDate: LocalDate) {
+    override fun openEventDetails(eventId: Long, occurrenceDate: LocalDate) {
         Toast.makeText(this, "TODO details: $eventId on $occurrenceDate", Toast.LENGTH_SHORT).show()
     }
 

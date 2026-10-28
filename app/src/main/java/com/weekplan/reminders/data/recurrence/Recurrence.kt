@@ -1,4 +1,4 @@
-package com.weekplan.reminders.data
+package com.weekplan.reminders.data.recurrence
 
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.EventOccurrence
@@ -47,7 +47,5 @@ object Recurrence {
             if (selectedWeekdays.isEmpty()) date.dayOfWeek == event.startDate.dayOfWeek
             else date.dayOfWeek in selectedWeekdays
         }
-        Frequency.MONTHLY, Frequency.YEARLY ->
-            throw IllegalArgumentException("${event.repeatRule.frequency} recurrence is not supported yet")
     }
 }

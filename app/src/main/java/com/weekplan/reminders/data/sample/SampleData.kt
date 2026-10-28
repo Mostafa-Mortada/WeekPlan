@@ -1,4 +1,4 @@
-package com.weekplan.reminders.data
+package com.weekplan.reminders.data.sample
 
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.Frequency

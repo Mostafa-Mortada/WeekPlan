@@ -188,8 +188,6 @@ class PlannerAdapter(
                 if (days.isNotEmpty()) parts.add(ctx.getString(R.string.planner_repeat_days, days))
                 else parts.add(ctx.getString(R.string.planner_repeat_weekly))
             }
-            Frequency.MONTHLY -> parts.add(ctx.getString(R.string.planner_repeat_monthly))
-            Frequency.YEARLY -> parts.add(ctx.getString(R.string.planner_repeat_yearly))
         }
         event.reminderOffsetMinutes?.let { minutes ->
             parts.add(

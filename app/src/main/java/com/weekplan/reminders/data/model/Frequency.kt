@@ -5,6 +5,4 @@ enum class Frequency {
     ONCE,
     DAILY,
     WEEKLY,
-    MONTHLY,
-    YEARLY,
 }

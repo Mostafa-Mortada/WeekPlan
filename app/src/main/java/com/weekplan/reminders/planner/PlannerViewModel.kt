@@ -3,7 +3,7 @@ package com.weekplan.reminders.planner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.weekplan.reminders.data.EventRepository
+import com.weekplan.reminders.data.repository.EventRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

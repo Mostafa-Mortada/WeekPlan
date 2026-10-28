@@ -1,6 +1,6 @@
 package com.weekplan.reminders.planner
 
-import com.weekplan.reminders.data.Recurrence
+import com.weekplan.reminders.data.recurrence.Recurrence
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.EventOccurrence
 import com.weekplan.reminders.data.model.Frequency

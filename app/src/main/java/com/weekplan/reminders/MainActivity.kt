@@ -11,6 +11,7 @@ import androidx.fragment.app.commit
 import com.weekplan.reminders.data.AppGraph
 import com.weekplan.reminders.planner.PlannerNavigator
 import com.weekplan.reminders.planner.WeeklyPlannerFragment
+import com.weekplan.reminders.EventDetailsFragment
 import java.time.LocalDate
 
 class MainActivity : AppCompatActivity(), PlannerNavigator {
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity(), PlannerNavigator {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+
         }
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
@@ -35,9 +37,11 @@ class MainActivity : AppCompatActivity(), PlannerNavigator {
     }
 
     override fun openEventDetails(eventId: Long, occurrenceDate: LocalDate) {
-        Toast.makeText(this, "TODO details: $eventId on $occurrenceDate", Toast.LENGTH_SHORT).show()
+        supportFragmentManager.commit {
+            replace(R.id.planner_container, EventDetailsFragment.newInstance(eventId, occurrenceDate))
+            addToBackStack("event_details")
+        }
     }
-
 
     override fun openAddEvent(date: LocalDate) {
         supportFragmentManager.commit {

@@ -112,15 +112,8 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
 
     private fun getRepeatDescription(event: Event): String {
         return when (event.repeatRule.frequency) {
-            Frequency.NONE ->
-                getString(R.string.event_details_no_repeat)
-
-            Frequency.ONCE ->
-                getString(R.string.event_details_once)
-
-            Frequency.DAILY ->
-                getString(R.string.event_details_daily)
-
+            Frequency.NONE -> getString(R.string.event_details_no_repeat)
+            Frequency.DAILY -> getString(R.string.event_details_daily)
             Frequency.WEEKLY -> {
                 val days = event.repeatRule.weekdays
                     .sortedBy { it.value }

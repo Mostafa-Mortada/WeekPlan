@@ -31,7 +31,6 @@
     <string name="event_details_no_notes">No notes added.</string>
     <string name="event_details_no_reminder">No reminder set.</string>
     <string name="event_details_no_repeat">Does not repeat</string>
-    <string name="event_details_once">Once</string>
     <string name="event_details_daily">Daily</string>
     <string name="event_details_weekly">Weekly</string>
     <string name="event_details_edit">Edit Event</string>

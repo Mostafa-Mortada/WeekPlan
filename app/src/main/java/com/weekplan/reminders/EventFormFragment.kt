@@ -126,7 +126,6 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
             }
 
             val frequency = when (repeatGroup.checkedRadioButtonId) {
-                R.id.repeat_once -> Frequency.ONCE
                 R.id.repeat_daily -> Frequency.DAILY
                 R.id.repeat_weekly -> Frequency.WEEKLY
                 else -> Frequency.NONE
@@ -193,7 +192,6 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                     // Restore selected frequency
                     when (rule.frequency) {
                         Frequency.NONE -> repeatGroup.clearCheck()
-                        Frequency.ONCE -> repeatGroup.check(R.id.repeat_once)
                         Frequency.DAILY -> repeatGroup.check(R.id.repeat_daily)
                         Frequency.WEEKLY -> repeatGroup.check(R.id.repeat_weekly)
                     }

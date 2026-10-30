@@ -53,4 +53,44 @@
     <string name="planner_error_title">Couldn\'t load this week</string>
     <string name="planner_error_body">Something went wrong while reading your events.</string>
     <string name="planner_retry">Retry</string>
+
+    <!-- Navigation -->
+    <string name="nav_today">Today</string>
+    <string name="nav_planner">Planner</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_tag">Dashboard</string>
+    <string name="dashboard_quick_actions">Quick Actions</string>
+    <string name="dashboard_next_up">Next up</string>
+    <string name="dashboard_happening_now">Happening now</string>
+    <string name="dashboard_schedule">Today\'s Schedule</string>
+    <string name="dashboard_view_week">View Week ›</string>
+    <string name="dashboard_add_event">+ Add Event</string>
+    <string name="dashboard_empty_title">Nothing scheduled today</string>
+    <string name="dashboard_empty_body">Your schedule for today is completely clear. Plan a study session, meeting, or routine.</string>
+    <string name="dashboard_all_done">All events for today are finished. Nice job!</string>
+    <string name="dashboard_error_title">Couldn\'t load today\'s events</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_tag">Preferences</string>
+    <string name="settings_subtitle">App preferences and notification permissions</string>
+    <string name="settings_reminders_header">Reminder Preferences</string>
+    <string name="settings_default_reminder_label">Default reminder for new events</string>
+    <string name="settings_default_reminder_desc">This offset will be automatically pre-selected when you create an event.</string>
+    <string name="settings_offset_none">None (No reminder)</string>
+    <string name="settings_offset_at_start">At event start (0m)</string>
+    <string name="settings_offset_5">5 minutes before</string>
+    <string name="settings_offset_15">15 minutes before</string>
+    <string name="settings_offset_30">30 minutes before</string>
+    <string name="settings_offset_60">1 hour before</string>
+    <string name="settings_notifications_header">Notification System</string>
+    <string name="settings_perm_label">Device Notification Permission</string>
+    <string name="settings_perm_status_granted">Status: Granted ✓</string>
+    <string name="settings_perm_status_denied">Status: Disabled / Denied ✕</string>
+    <string name="settings_perm_button">Manage Notification Permissions</string>
+    <string name="settings_about_header">About</string>
+    <string name="settings_about_title">Week Plan &amp; Reminders</string>
+    <string name="settings_about_desc">Mobile Computing Final Project • Team of Five\nBuilt with Kotlin, Room, Coroutines, and Neo-brutalism design.</string>
 </resources>

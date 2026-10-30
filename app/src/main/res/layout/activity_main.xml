@@ -1,13 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wp_bg">
+    android:background="@color/wp_bg"
+    android:orientation="vertical">
 
-    <!-- Temporary host: Member 5's navigation will take over this container. -->
+    <!-- Container for Top-level tabs & backstack detail/form fragments -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/planner_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</FrameLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Neo-brutalist Bottom Navigation Bar -->
+    <LinearLayout
+        android:id="@+id/bottom_nav_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/wp_paper"
+        android:orientation="vertical">
+
+        <!-- Top solid black border line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="@color/wp_ink" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="10dp">
+
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/nav_tab_today"
+                style="@style/WP.Text.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:text="@string/nav_today"
+                app:neoFill="@color/wp_yellow"
+                app:neoShadow="3dp"
+                app:neoStroke="2dp" />
+
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/nav_tab_planner"
+                style="@style/WP.Text.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:text="@string/nav_planner"
+                app:neoFill="@color/wp_paper"
+                app:neoShadow="3dp"
+                app:neoStroke="2dp" />
+
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/nav_tab_settings"
+                style="@style/WP.Text.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/nav_settings"
+                app:neoFill="@color/wp_paper"
+                app:neoShadow="3dp"
+                app:neoStroke="2dp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

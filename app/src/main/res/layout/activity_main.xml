@@ -7,14 +7,14 @@
     android:background="@color/wp_bg"
     android:orientation="vertical">
 
-    <!-- Container for Top-level tabs & backstack detail/form fragments -->
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/planner_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Neo-brutalist Bottom Navigation Bar -->
+
     <LinearLayout
         android:id="@+id/bottom_nav_bar"
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
         android:background="@color/wp_paper"
         android:orientation="vertical">
 
-        <!-- Top solid black border line -->
+
         <View
             android:layout_width="match_parent"
             android:layout_height="3dp"

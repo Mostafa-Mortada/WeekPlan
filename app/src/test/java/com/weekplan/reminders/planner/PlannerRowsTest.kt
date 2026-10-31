@@ -79,7 +79,7 @@ class PlannerRowsTest {
         val a = occ("a", wednesday, LocalTime.of(9, 0), LocalTime.of(10, 0), title = "alpha")
         val short = occ("s", wednesday, LocalTime.of(9, 0), LocalTime.of(9, 30), title = "Zed")
         val order = build(listOf(b, a, short)).events().map { it.item.event.title }
-        assertEquals(listOf("s", "a", "b"), order)
+        assertEquals(listOf("Zed", "alpha", "Beta"), order)
     }
 
     // ---- week range ----

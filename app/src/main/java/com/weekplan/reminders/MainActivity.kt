@@ -1,39 +1,120 @@
 package com.weekplan.reminders
 
 import android.os.Bundle
-import android.widget.Toast
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
+import com.weekplan.reminders.dashboard.DashboardFragment
 import com.weekplan.reminders.data.AppGraph
-import com.weekplan.reminders.planner.PlannerNavigator
 import com.weekplan.reminders.planner.WeeklyPlannerFragment
-import com.weekplan.reminders.EventDetailsFragment
+import com.weekplan.reminders.settings.SettingsFragment
+import com.weekplan.reminders.ui.NeoTextView
 import java.time.LocalDate
 
-class MainActivity : AppCompatActivity(), PlannerNavigator {
+class MainActivity : AppCompatActivity(), AppNavigator {
+
+    enum class NavTab { TODAY, PLANNER, SETTINGS }
+
+    private var currentTab: NavTab = NavTab.TODAY
+    private lateinit var bottomNavBar: View
+    private lateinit var tabToday: NeoTextView
+    private lateinit var tabPlanner: NeoTextView
+    private lateinit var tabSettings: NeoTextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // The website is light-only; keep the planner's black-on-white look in dark mode too.
+        // Keep the light neobrutalist theme consistent across dark/light modes
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         AppGraph.initialize(applicationContext)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
+        bottomNavBar = findViewById(R.id.bottom_nav_bar)
+        tabToday = findViewById(R.id.nav_tab_today)
+        tabPlanner = findViewById(R.id.nav_tab_planner)
+        tabSettings = findViewById(R.id.nav_tab_settings)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
-
         }
-        if (savedInstanceState == null) {
-            supportFragmentManager.commit {
-                replace(R.id.planner_container, WeeklyPlannerFragment())
+
+        tabToday.setOnClickListener { selectTab(NavTab.TODAY) }
+        tabPlanner.setOnClickListener { selectTab(NavTab.PLANNER) }
+        tabSettings.setOnClickListener { selectTab(NavTab.SETTINGS) }
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            val hasBackStack = supportFragmentManager.backStackEntryCount > 0
+            bottomNavBar.visibility = if (hasBackStack) View.GONE else View.VISIBLE
+            if (!hasBackStack) {
+                updateTabVisuals()
             }
         }
+
+        if (savedInstanceState != null) {
+            val tabName = savedInstanceState.getString(KEY_CURRENT_TAB)
+            currentTab = tabName?.let { NavTab.valueOf(it) } ?: NavTab.TODAY
+            updateTabVisuals()
+        } else {
+            selectTab(NavTab.TODAY, addToBackStack = false)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_CURRENT_TAB, currentTab.name)
+    }
+
+    private fun selectTab(tab: NavTab, addToBackStack: Boolean = false) {
+        // Clear backstack when switching top-level tabs
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        }
+
+        currentTab = tab
+        updateTabVisuals()
+
+        val fragment: Fragment = when (tab) {
+            NavTab.TODAY -> DashboardFragment()
+            NavTab.PLANNER -> WeeklyPlannerFragment()
+            NavTab.SETTINGS -> SettingsFragment()
+        }
+
+        supportFragmentManager.commit {
+            replace(R.id.planner_container, fragment)
+            if (addToBackStack) {
+                addToBackStack(tab.name)
+            }
+        }
+    }
+
+    private fun updateTabVisuals() {
+        val yellow = ContextCompat.getColor(this, R.color.wp_yellow)
+        val paper = ContextCompat.getColor(this, R.color.wp_paper)
+
+        tabToday.neoFill = if (currentTab == NavTab.TODAY) yellow else paper
+        tabPlanner.neoFill = if (currentTab == NavTab.PLANNER) yellow else paper
+        tabSettings.neoFill = if (currentTab == NavTab.SETTINGS) yellow else paper
+    }
+
+    override fun openToday() {
+        selectTab(NavTab.TODAY)
+    }
+
+    override fun openPlanner() {
+        selectTab(NavTab.PLANNER)
+    }
+
+    override fun openSettings() {
+        selectTab(NavTab.SETTINGS)
     }
 
     override fun openEventDetails(eventId: Long, occurrenceDate: LocalDate) {
@@ -48,5 +129,9 @@ class MainActivity : AppCompatActivity(), PlannerNavigator {
             replace(R.id.planner_container, EventFormFragment.newInstance(date))
             addToBackStack("event_form")
         }
+    }
+
+    companion object {
+        private const val KEY_CURRENT_TAB = "current_nav_tab"
     }
 }

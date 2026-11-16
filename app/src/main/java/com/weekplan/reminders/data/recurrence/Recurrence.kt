@@ -40,7 +40,7 @@ object Recurrence {
     }
 
     private fun occursOn(event: Event, date: LocalDate): Boolean = when (event.repeatRule.frequency) {
-        Frequency.NONE, Frequency.ONCE -> date == event.startDate
+        Frequency.NONE-> date == event.startDate
         Frequency.DAILY -> true
         Frequency.WEEKLY -> {
             val selectedWeekdays = event.repeatRule.weekdays

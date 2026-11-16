@@ -21,7 +21,7 @@ object EventFormatters {
         val parts = ArrayList<String>(2)
 
         when (event.repeatRule.frequency) {
-            Frequency.NONE, Frequency.ONCE -> Unit
+            Frequency.NONE -> Unit
             Frequency.DAILY -> parts.add(context.getString(R.string.planner_repeat_daily))
             Frequency.WEEKLY -> {
                 val days = event.repeatRule.weekdays

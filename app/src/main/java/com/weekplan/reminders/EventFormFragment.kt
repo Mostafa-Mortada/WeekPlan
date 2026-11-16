@@ -1,5 +1,6 @@
 package com.weekplan.reminders
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
@@ -30,6 +31,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
     private lateinit var selectedDate: LocalDate
     private var selectedStartTime = LocalTime.of(9, 0)
     private var selectedEndTime = LocalTime.of(10, 0)
+    private var selectedReminderOffset: Int? = 15
     private var editingEventId: Long? = null
     private var existingEvent: Event? = null
     private val dateFormatter = DateTimeFormatter.ofPattern("EEE, MMM d, yyyy", Locale.getDefault())
@@ -56,6 +58,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         val dateButton = view.findViewById<NeoTextView>(R.id.event_date)
         val startButton = view.findViewById<NeoTextView>(R.id.event_start_time)
         val endButton = view.findViewById<NeoTextView>(R.id.event_end_time)
+        val reminderButton = view.findViewById<NeoTextView>(R.id.event_reminder)
         val errorText = view.findViewById<TextView>(R.id.form_error)
         val saveButton = view.findViewById<NeoTextView>(R.id.event_save)
         val cancelButton = view.findViewById<NeoTextView>(R.id.event_cancel)
@@ -157,9 +160,33 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
             endButton.text = selectedEndTime.format(timeFormatter)
         }
 
+        fun getReminderLabel(offset: Int?): String = when (offset) {
+            null -> getString(R.string.settings_offset_none)
+            0 -> getString(R.string.settings_offset_at_start)
+            5 -> getString(R.string.settings_offset_5)
+            15 -> getString(R.string.settings_offset_15)
+            30 -> getString(R.string.settings_offset_30)
+            60 -> getString(R.string.settings_offset_60)
+            else -> getString(R.string.event_details_minutes_before, offset)
+        }
+
+        fun updateReminderText() {
+            reminderButton.text = getReminderLabel(selectedReminderOffset)
+        }
+
         updateDateText()
         updateStartText()
         updateEndText()
+        updateReminderText()
+
+        // Load default reminder preference from settings when creating a new event
+        if (!isEditing) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val settings = AppGraph.eventRepository.getSettings()
+                selectedReminderOffset = settings.defaultReminderOffsetMinutes
+                updateReminderText()
+            }
+        }
 
         // Load existing event when editing
         if (isEditing) {
@@ -181,6 +208,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                     selectedDate = event.startDate
                     selectedStartTime = event.startTime
                     selectedEndTime = event.endTime
+                    selectedReminderOffset = event.reminderOffsetMinutes
 
                     // Restore repeat settings
                     val rule = event.repeatRule
@@ -223,6 +251,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                     updateDateText()
                     updateStartText()
                     updateEndText()
+                    updateReminderText()
 
                     saveButton.isEnabled = true
 
@@ -278,6 +307,23 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
             ).show()
         }
 
+        // Reminder picker
+        reminderButton.setOnClickListener {
+            val reminderOffsets = listOf(null, 0, 5, 15, 30, 60)
+            val reminderLabels = reminderOffsets.map { getReminderLabel(it) }.toTypedArray()
+            val currentIndex = reminderOffsets.indexOf(selectedReminderOffset).let { if (it >= 0) it else 0 }
+
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.event_details_reminder)
+                .setSingleChoiceItems(reminderLabels, currentIndex) { dialog, which ->
+                    selectedReminderOffset = reminderOffsets[which]
+                    updateReminderText()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.event_cancel, null)
+                .show()
+        }
+
         // Cancel
         cancelButton.setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -325,6 +371,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                 startTime = selectedStartTime,
                 endTime = selectedEndTime,
                 notes = notes,
+                reminderOffsetMinutes = selectedReminderOffset,
                 repeatRule = selectedRepeatRule
             ) ?: Event(
                 title = title,
@@ -332,6 +379,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                 startTime = selectedStartTime,
                 endTime = selectedEndTime,
                 notes = notes,
+                reminderOffsetMinutes = selectedReminderOffset,
                 repeatRule = selectedRepeatRule
             )
 

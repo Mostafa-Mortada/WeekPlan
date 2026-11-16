@@ -32,29 +32,18 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         viewLifecycleOwner.lifecycleScope.launch {
             val settings = AppGraph.eventRepository.getSettings()
             isProgrammaticCheck = true
-            when (settings.defaultReminderOffsetMinutes) {
-                null -> reminderGroup.check(R.id.settings_offset_none)
-                0 -> reminderGroup.check(R.id.settings_offset_0)
-                5 -> reminderGroup.check(R.id.settings_offset_5)
-                15 -> reminderGroup.check(R.id.settings_offset_15)
-                30 -> reminderGroup.check(R.id.settings_offset_30)
-                60 -> reminderGroup.check(R.id.settings_offset_60)
-                else -> reminderGroup.check(R.id.settings_offset_15)
-            }
+            val radioId = OFFSET_TO_RADIO_ID[settings.defaultReminderOffsetMinutes] ?: R.id.settings_offset_15
+            reminderGroup.check(radioId)
             isProgrammaticCheck = false
         }
 
         reminderGroup.setOnCheckedChangeListener { _, checkedId ->
             if (isProgrammaticCheck) return@setOnCheckedChangeListener
 
-            val offset = when (checkedId) {
-                R.id.settings_offset_none -> null
-                R.id.settings_offset_0 -> 0
-                R.id.settings_offset_5 -> 5
-                R.id.settings_offset_15 -> 15
-                R.id.settings_offset_30 -> 30
-                R.id.settings_offset_60 -> 60
-                else -> 15
+            val offset = if (checkedId in RADIO_ID_TO_OFFSET) {
+                RADIO_ID_TO_OFFSET[checkedId]
+            } else {
+                DEFAULT_FALLBACK_OFFSET
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
@@ -100,5 +89,18 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             }
             startActivity(intent)
         }
+    }
+
+    companion object {
+        private val OFFSET_TO_RADIO_ID = mapOf(
+            null to R.id.settings_offset_none,
+            0 to R.id.settings_offset_0,
+            5 to R.id.settings_offset_5,
+            15 to R.id.settings_offset_15,
+            30 to R.id.settings_offset_30,
+            60 to R.id.settings_offset_60,
+        )
+        private val RADIO_ID_TO_OFFSET = OFFSET_TO_RADIO_ID.entries.associate { (k, v) -> v to k }
+        private const val DEFAULT_FALLBACK_OFFSET = 15
     }
 }

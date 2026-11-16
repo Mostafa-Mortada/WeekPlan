@@ -1,6 +1,5 @@
 package com.weekplan.reminders.dashboard
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
@@ -12,20 +11,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.weekplan.reminders.AppNavigator
 import com.weekplan.reminders.R
 import com.weekplan.reminders.data.AppGraph
-import com.weekplan.reminders.data.model.Event
-import com.weekplan.reminders.data.model.Frequency
-import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import com.weekplan.reminders.ui.EventColors
 import com.weekplan.reminders.ui.NeoLinearLayout
 import com.weekplan.reminders.ui.NeoTextView
+import com.weekplan.reminders.ui.formatMeta
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.time.format.TextStyle
 import java.util.Locale
 
 class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
@@ -63,6 +60,8 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
         val eventsList = view.findViewById<RecyclerView>(R.id.dashboard_events_list)
         eventsList.layoutManager = LinearLayoutManager(requireContext())
+        eventsList.isNestedScrollingEnabled = false
+        (eventsList.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
         val adapter = DashboardEventAdapter(
             onEventClick = { item ->
                 navigator?.openEventDetails(item.occurrence.eventId, item.occurrence.occurrenceDate)
@@ -150,7 +149,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
                             nextUpCard.neoFill = EventColors.colorFor(requireContext(), next.event.id)
 
-                            val meta = formatEventMeta(requireContext(), next.event)
+                            val meta = next.event.formatMeta(requireContext(), locale)
                             nextUpMeta.text = meta
                             nextUpMeta.visibility = if (meta.isEmpty()) View.GONE else View.VISIBLE
 
@@ -176,27 +175,5 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
-    }
-
-    private fun formatEventMeta(ctx: Context, event: Event): String {
-        val parts = ArrayList<String>(2)
-        when (event.repeatRule.frequency) {
-            Frequency.NONE, Frequency.ONCE -> Unit
-            Frequency.DAILY -> parts.add(ctx.getString(R.string.planner_repeat_daily))
-            Frequency.WEEKLY -> {
-                val days = event.repeatRule.weekdays
-                    .sortedBy { it.value }
-                    .joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
-                if (days.isNotEmpty()) parts.add(ctx.getString(R.string.planner_repeat_days, days))
-                else parts.add(ctx.getString(R.string.planner_repeat_weekly))
-            }
-        }
-        event.reminderOffsetMinutes?.let { minutes ->
-            parts.add(
-                if (minutes == 0) ctx.getString(R.string.planner_reminder_at_start)
-                else ctx.getString(R.string.planner_reminder_before, minutes)
-            )
-        }
-        return parts.joinToString(" · ")
     }
 }

@@ -52,17 +52,36 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <com.weekplan.reminders.ui.NeoTextView
-            android:id="@+id/event_overlap"
-            style="@style/WP.Text.Chip"
+        <!-- Badges (Finished, Overlap) -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
-            android:text="@string/planner_overlap"
-            android:visibility="gone"
-            app:neoFill="@color/wp_pink"
-            app:neoShadow="2dp"
-            app:neoStroke="2dp" />
+            android:orientation="horizontal">
+
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/event_status_badge"
+                style="@style/WP.Text.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="@string/dashboard_event_finished"
+                android:visibility="gone"
+                app:neoFill="@color/wp_paper"
+                app:neoShadow="2dp"
+                app:neoStroke="2dp" />
+
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/event_overlap"
+                style="@style/WP.Text.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/planner_overlap"
+                android:visibility="gone"
+                app:neoFill="@color/wp_pink"
+                app:neoShadow="2dp"
+                app:neoStroke="2dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/event_title"

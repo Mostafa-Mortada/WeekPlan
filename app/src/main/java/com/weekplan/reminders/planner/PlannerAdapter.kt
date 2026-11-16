@@ -11,14 +11,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.weekplan.reminders.R
 import com.weekplan.reminders.data.model.Event
-import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.ui.EventColors
 import com.weekplan.reminders.ui.NeoLinearLayout
 import com.weekplan.reminders.ui.NeoTextView
+import com.weekplan.reminders.ui.formatMeta
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.time.format.TextStyle
 import java.util.Locale
 
 /** Draws [PlannerRow]s: day headers, event cards, empty / loading / error states. */
@@ -126,6 +125,7 @@ class PlannerAdapter(
             val endText = occ.endDateTime.format(timeFormat)
 
             card.neoFill = EventColors.colorFor(ctx, event.id)
+            card.alpha = 1f
             start.text = startText
             end.text = ctx.getString(R.string.planner_time_to, endText)
             title.text = event.title
@@ -176,27 +176,7 @@ class PlannerAdapter(
     // ---- helpers ----
 
     /** "↻ Daily · Reminder: 15 min before", or empty when the event has neither. */
-    private fun metaLine(ctx: Context, event: Event): String {
-        val parts = ArrayList<String>(2)
-        when (event.repeatRule.frequency) {
-            Frequency.NONE, Frequency.ONCE -> Unit
-            Frequency.DAILY -> parts.add(ctx.getString(R.string.planner_repeat_daily))
-            Frequency.WEEKLY -> {
-                val days = event.repeatRule.weekdays
-                    .sortedBy { it.value }
-                    .joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
-                if (days.isNotEmpty()) parts.add(ctx.getString(R.string.planner_repeat_days, days))
-                else parts.add(ctx.getString(R.string.planner_repeat_weekly))
-            }
-        }
-        event.reminderOffsetMinutes?.let { minutes ->
-            parts.add(
-                if (minutes == 0) ctx.getString(R.string.planner_reminder_at_start)
-                else ctx.getString(R.string.planner_reminder_before, minutes),
-            )
-        }
-        return parts.joinToString(" · ")
-    }
+    private fun metaLine(ctx: Context, event: Event): String = event.formatMeta(ctx, locale)
 
     private companion object {
         const val TYPE_HEADER = 0

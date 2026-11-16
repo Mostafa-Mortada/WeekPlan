@@ -70,6 +70,7 @@
     <string name="dashboard_empty_title">Nothing scheduled today</string>
     <string name="dashboard_empty_body">Your schedule for today is completely clear. Plan a study session, meeting, or routine.</string>
     <string name="dashboard_all_done">All events for today are finished. Nice job!</string>
+    <string name="dashboard_event_finished">Finished</string>
     <string name="dashboard_error_title">Couldn\'t load today\'s events</string>
 
     <!-- Settings -->

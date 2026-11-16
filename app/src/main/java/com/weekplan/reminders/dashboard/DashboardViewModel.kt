@@ -80,20 +80,14 @@ class DashboardViewModel(
         loadJob = viewModelScope.launch {
             try {
                 val occurrences = repository.getOccurrences(today, today)
-                val now = clockNow()
-                val happeningNow = occurrences.firstOrNull {
-                    !it.occurrence.startDateTime.isAfter(now) && it.occurrence.endDateTime.isAfter(now)
-                }
-                val nextUp = happeningNow ?: occurrences.firstOrNull {
-                    it.occurrence.startDateTime.isAfter(now)
-                }
+                val (nextUp, isHappeningNow) = resolveNextUp(occurrences, clockNow())
 
                 _state.value = DashboardUiState(
                     today = today,
                     status = DashboardStatus.CONTENT,
                     occurrences = occurrences,
                     nextUp = nextUp,
-                    isHappeningNow = happeningNow != null,
+                    isHappeningNow = isHappeningNow,
                 )
             } catch (e: CancellationException) {
                 throw e
@@ -110,18 +104,25 @@ class DashboardViewModel(
         val current = _state.value
         if (current.status != DashboardStatus.CONTENT) return
 
-        val now = clockNow()
-        val happeningNow = current.occurrences.firstOrNull {
-            !it.occurrence.startDateTime.isAfter(now) && it.occurrence.endDateTime.isAfter(now)
-        }
-        val nextUp = happeningNow ?: current.occurrences.firstOrNull {
-            it.occurrence.startDateTime.isAfter(now)
-        }
+        val (nextUp, isHappeningNow) = resolveNextUp(current.occurrences, clockNow())
 
         _state.value = current.copy(
             nextUp = nextUp,
-            isHappeningNow = happeningNow != null,
+            isHappeningNow = isHappeningNow,
         )
+    }
+
+    private fun resolveNextUp(
+        occurrences: List<OccurrenceWithEvent>,
+        now: LocalDateTime,
+    ): Pair<OccurrenceWithEvent?, Boolean> {
+        val happeningNow = occurrences.firstOrNull {
+            !it.occurrence.startDateTime.isAfter(now) && it.occurrence.endDateTime.isAfter(now)
+        }
+        val nextUp = happeningNow ?: occurrences.firstOrNull {
+            it.occurrence.startDateTime.isAfter(now)
+        }
+        return Pair(nextUp, happeningNow != null)
     }
 
     class Factory(private val repository: EventRepository) : ViewModelProvider.Factory {

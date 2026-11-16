@@ -1,6 +1,5 @@
 package com.weekplan.reminders.dashboard
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,16 +8,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.weekplan.reminders.R
-import com.weekplan.reminders.data.model.Event
-import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import com.weekplan.reminders.planner.PlannerRows
 import com.weekplan.reminders.ui.EventColors
 import com.weekplan.reminders.ui.NeoLinearLayout
 import com.weekplan.reminders.ui.NeoTextView
+import com.weekplan.reminders.ui.formatMeta
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.time.format.TextStyle
 import java.util.Locale
 
 class DashboardEventAdapter(
@@ -52,6 +50,7 @@ class DashboardEventAdapter(
         private val title = view.findViewById<TextView>(R.id.event_title)
         private val meta = view.findViewById<TextView>(R.id.event_meta)
         private val overlap = view.findViewById<NeoTextView>(R.id.event_overlap)
+        private val statusBadge = view.findViewById<NeoTextView>(R.id.event_status_badge)
 
         fun bind(item: OccurrenceWithEvent, overlaps: Boolean) {
             val ctx = itemView.context
@@ -66,7 +65,17 @@ class DashboardEventAdapter(
             title.text = event.title
             overlap.visibility = if (overlaps) View.VISIBLE else View.GONE
 
-            val metaText = formatMeta(ctx, event)
+            val now = LocalDateTime.now()
+            val isFinished = now.isAfter(occ.endDateTime)
+            if (isFinished) {
+                statusBadge.visibility = View.VISIBLE
+                statusBadge.text = ctx.getString(R.string.dashboard_event_finished)
+            } else {
+                statusBadge.visibility = View.GONE
+            }
+            card.alpha = 1.0f
+
+            val metaText = event.formatMeta(ctx, locale)
             meta.text = metaText
             meta.visibility = if (metaText.isEmpty()) View.GONE else View.VISIBLE
 
@@ -75,31 +84,10 @@ class DashboardEventAdapter(
             )
             if (metaText.isNotEmpty()) description.append(", ").append(metaText)
             if (overlaps) description.append(", ").append(ctx.getString(R.string.planner_cd_overlap))
+            if (isFinished) description.append(", ").append(ctx.getString(R.string.dashboard_event_finished))
             card.contentDescription = description.toString()
 
             card.setOnClickListener { onEventClick(item) }
-        }
-
-        private fun formatMeta(ctx: Context, event: Event): String {
-            val parts = ArrayList<String>(2)
-            when (event.repeatRule.frequency) {
-                Frequency.NONE, Frequency.ONCE -> Unit
-                Frequency.DAILY -> parts.add(ctx.getString(R.string.planner_repeat_daily))
-                Frequency.WEEKLY -> {
-                    val days = event.repeatRule.weekdays
-                        .sortedBy { it.value }
-                        .joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
-                    if (days.isNotEmpty()) parts.add(ctx.getString(R.string.planner_repeat_days, days))
-                    else parts.add(ctx.getString(R.string.planner_repeat_weekly))
-                }
-            }
-            event.reminderOffsetMinutes?.let { minutes ->
-                parts.add(
-                    if (minutes == 0) ctx.getString(R.string.planner_reminder_at_start)
-                    else ctx.getString(R.string.planner_reminder_before, minutes)
-                )
-            }
-            return parts.joinToString(" · ")
         }
     }
 
@@ -114,7 +102,6 @@ class DashboardEventAdapter(
         override fun areContentsTheSame(
             oldItem: OccurrenceWithEvent,
             newItem: OccurrenceWithEvent,
-        ): Boolean =
-            oldItem == newItem
+        ): Boolean = oldItem == newItem
     }
 }

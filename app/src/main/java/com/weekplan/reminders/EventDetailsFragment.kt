@@ -142,6 +142,9 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
             ?: return getString(R.string.event_details_no_reminder)
 
         return when {
+            minutes == 0 ->
+                getString(R.string.settings_offset_at_start)
+
             minutes == 60 ->
                 getString(R.string.event_details_hour_before)
 

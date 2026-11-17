@@ -21,7 +21,9 @@ class ReminderReceiver : BroadcastReceiver() {
             application.deliverReminder(eventId, alarmToken, pending::finish)
         } else {
             val pending = goAsync()
-            application.restoreReminders(pending::finish)
+            val clockChanged = intent.action == Intent.ACTION_TIME_CHANGED ||
+                intent.action == Intent.ACTION_TIMEZONE_CHANGED
+            application.restoreReminders(clockChanged, pending::finish)
         }
     }
 

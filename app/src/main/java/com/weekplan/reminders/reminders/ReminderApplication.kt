@@ -46,8 +46,8 @@ class ReminderApplication : Application() {
         })
     }
 
-    internal fun restoreReminders(onFinished: () -> Unit = {}) {
-        runReminderOperationAsync(onFinished) { reconcileReminders(restore = true) }
+    internal fun restoreReminders(clockChanged: Boolean = false, onFinished: () -> Unit = {}) {
+        runReminderOperationAsync(onFinished) { reconcileReminders(restore = true, clockChanged = clockChanged) }
     }
 
     internal fun deliverReminder(eventId: String, alarmToken: String, onFinished: () -> Unit) {
@@ -62,7 +62,7 @@ class ReminderApplication : Application() {
         }
     }
 
-    private suspend fun reconcileReminders(restore: Boolean = false) {
+    private suspend fun reconcileReminders(restore: Boolean = false, clockChanged: Boolean = false) {
         val reminders = AppGraph.eventDao.getAllEvents().mapNotNull(Event::toReminder)
         val stored = service.getReminders().associateBy(Reminder::eventId).toMutableMap()
         for (reminder in reminders) {
@@ -70,7 +70,7 @@ class ReminderApplication : Application() {
             if (previous != reminder) {
                 service.saveReminder(reminder)
             } else if (restore) {
-                service.restoreReminder(reminder)
+                service.restoreReminder(reminder, clockChanged)
             }
         }
         stored.keys.forEach(service::cancelReminder)

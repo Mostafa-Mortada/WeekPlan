@@ -91,6 +91,10 @@
     <string name="settings_perm_status_granted">Status: Granted ✓</string>
     <string name="settings_perm_status_denied">Status: Disabled / Denied ✕</string>
     <string name="settings_perm_button">Manage Notification Permissions</string>
+    <string name="settings_alarm_exact">Precise reminder timing is enabled.</string>
+    <string name="settings_alarm_approximate">Reminders may arrive late. Enable Alarms &amp; reminders for precise timing.</string>
+    <string name="settings_alarm_action">Manage alarm access</string>
+    <string name="settings_alarm_access_unavailable">Open Alarms &amp; reminders in Android Settings.</string>
     <string name="settings_about_header">About</string>
     <string name="settings_about_title">Week Plan &amp; Reminders</string>
     <string name="settings_about_desc">"Helping you plan smarter, stay organized, and never miss a thing.\n\nOur Team\n\n• Moustafa Mortada\n• Mohamed Ahmed\n• Ammar Mohamed\n• Omar Karam\n• Salma Khaled"</string>

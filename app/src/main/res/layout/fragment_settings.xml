@@ -180,6 +180,25 @@
                 app:neoFill="@color/wp_yellow"
                 app:neoShadow="3dp"
                 app:neoStroke="2dp" />
+
+            <TextView
+                android:id="@+id/settings_alarm_status"
+                style="@style/WP.Text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/settings_alarm_action"
+                style="@style/WP.Text.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/settings_alarm_action"
+                android:visibility="gone"
+                app:neoFill="@color/wp_yellow"
+                app:neoShadow="3dp"
+                app:neoStroke="2dp" />
         </com.weekplan.reminders.ui.NeoLinearLayout>
 
         <!-- Section 3: About -->

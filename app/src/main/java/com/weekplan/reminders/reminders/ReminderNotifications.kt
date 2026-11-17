@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.weekplan.reminders.MainActivity
 import com.weekplan.reminders.R
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -41,16 +42,21 @@ internal class ReminderNotifications(private val context: Context) {
 
     fun show(reminder: Reminder, occurrence: ReminderOccurrence): Boolean {
         if (!enabled()) return false
-        val eventTime = occurrence.eventAt.atZone(reminder.zoneId ?: ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))
+        val start = occurrence.eventAt.atZone(reminder.zoneId ?: ZoneId.systemDefault())
+        val eventTime = start.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))
+        val timeLabel = if (occurrence.eventAt < Instant.now()) {
+            R.string.reminder_notification_started
+        } else {
+            R.string.reminder_notification_time
+        }
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_reminder_notification)
             .setContentTitle(reminder.title)
-            .setContentText(context.getString(R.string.reminder_notification_time, eventTime))
+            .setContentText(context.getString(timeLabel, eventTime))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_EVENT)
-        val occurrenceDate = occurrence.eventAt.atZone(reminder.zoneId ?: ZoneId.systemDefault()).toLocalDate()
+        val occurrenceDate = start.toLocalDate()
         val launchIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             data = Uri.Builder().scheme("weekplan").authority("event").appendPath(reminder.eventId).build()

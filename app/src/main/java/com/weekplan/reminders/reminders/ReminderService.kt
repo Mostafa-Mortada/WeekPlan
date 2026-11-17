@@ -32,16 +32,19 @@ class ReminderService(context: Context) {
 
     fun exactAlarmsAllowed(): Boolean = scheduler.exactAlarmsAllowed()
 
-    internal fun restoreReminder(reminder: Reminder): ScheduleStatus = scheduleNext(reminder)
+    internal fun restoreReminder(reminder: Reminder, clockChanged: Boolean) {
+        val record = store.get(reminder.eventId)
+        if (!clockChanged && record?.nextOccurrence?.isDeliverableAt(Instant.now()) == true) {
+            notifyOccurrence(record)
+        }
+        scheduleNext(reminder)
+    }
 
     internal fun deliver(eventId: String, alarmToken: String) {
         val record = store.get(eventId) ?: return
         val occurrence = record.nextOccurrence ?: return
         if (record.alarmToken != alarmToken) return
-        val now = Instant.now()
-        if (now >= occurrence.triggerAt &&
-            (now < occurrence.eventAt || record.reminder.offsetMinutes == 0)) {
-            // At-start alarms are delivered when the event starts, rather than before it.
+        if (occurrence.isDeliverableAt(Instant.now())) {
             notifyOccurrence(record)
         }
         scheduleNext(record.reminder)

@@ -1,11 +1,15 @@
 package com.weekplan.reminders.settings
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings as AndroidSettings
 import android.view.View
 import android.widget.RadioGroup
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.weekplan.reminders.MainActivity
@@ -19,6 +23,8 @@ import kotlinx.coroutines.launch
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private lateinit var permStatusChip: NeoTextView
+    private lateinit var alarmStatus: TextView
+    private lateinit var alarmAction: NeoTextView
     private lateinit var reminderGroup: RadioGroup
     private var isProgrammaticCheck = false
 
@@ -27,6 +33,9 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         reminderGroup = view.findViewById(R.id.settings_reminder_group)
         permStatusChip = view.findViewById(R.id.settings_perm_status)
+        alarmStatus = view.findViewById(R.id.settings_alarm_status)
+        alarmAction = view.findViewById(R.id.settings_alarm_action)
+        alarmAction.setOnClickListener { openExactAlarmSettings() }
         val permButton = view.findViewById<NeoTextView>(R.id.settings_perm_action_btn)
 
         // Load existing settings
@@ -69,13 +78,31 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private fun updateNotificationStatus() {
         if (!isAdded) return
-        val enabled = ReminderService(requireContext()).notificationsEnabled()
+        val reminders = ReminderService(requireContext())
+        val exact = reminders.exactAlarmsAllowed()
+        alarmStatus.setText(if (exact) R.string.settings_alarm_exact else R.string.settings_alarm_approximate)
+        alarmAction.visibility = if (exact) View.GONE else View.VISIBLE
+
+        val enabled = reminders.notificationsEnabled()
         if (enabled) {
             permStatusChip.text = getString(R.string.settings_perm_status_granted)
             permStatusChip.neoFill = requireContext().getColor(R.color.wp_green)
         } else {
             permStatusChip.text = getString(R.string.settings_perm_status_denied)
             permStatusChip.neoFill = requireContext().getColor(R.color.wp_pink)
+        }
+    }
+
+    private fun openExactAlarmSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val intent = Intent(
+            AndroidSettings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+            Uri.fromParts("package", requireContext().packageName, null),
+        )
+        try {
+            startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(requireContext(), R.string.settings_alarm_access_unavailable, Toast.LENGTH_LONG).show()
         }
     }
 

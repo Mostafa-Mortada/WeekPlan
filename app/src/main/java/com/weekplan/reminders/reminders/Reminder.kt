@@ -74,4 +74,11 @@ data class Reminder(
     }
 }
 
-data class ReminderOccurrence(val eventAt: Instant, val triggerAt: Instant)
+data class ReminderOccurrence(val eventAt: Instant, val triggerAt: Instant) {
+    internal fun isDeliverableAt(now: Instant): Boolean =
+        now >= triggerAt && now < eventAt.plus(MAX_DELAY_AFTER_START)
+
+    private companion object {
+        val MAX_DELAY_AFTER_START: Duration = Duration.ofHours(1)
+    }
+}

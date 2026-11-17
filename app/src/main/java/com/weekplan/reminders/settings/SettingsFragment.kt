@@ -6,12 +6,13 @@ import android.os.Bundle
 import android.provider.Settings as AndroidSettings
 import android.view.View
 import android.widget.RadioGroup
-import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.weekplan.reminders.MainActivity
 import com.weekplan.reminders.R
 import com.weekplan.reminders.data.AppGraph
 import com.weekplan.reminders.data.model.Settings
+import com.weekplan.reminders.reminders.ReminderService
 import com.weekplan.reminders.ui.NeoTextView
 import kotlinx.coroutines.launch
 
@@ -54,7 +55,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         }
 
         permButton.setOnClickListener {
-            openSystemNotificationSettings()
+            val requested = (activity as? MainActivity)?.requestReminderPermission(userInitiated = true) == true
+            if (!requested) openSystemNotificationSettings()
         }
 
         updateNotificationStatus()
@@ -67,7 +69,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private fun updateNotificationStatus() {
         if (!isAdded) return
-        val enabled = NotificationManagerCompat.from(requireContext()).areNotificationsEnabled()
+        val enabled = ReminderService(requireContext()).notificationsEnabled()
         if (enabled) {
             permStatusChip.text = getString(R.string.settings_perm_status_granted)
             permStatusChip.neoFill = requireContext().getColor(R.color.wp_green)

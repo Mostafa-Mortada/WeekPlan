@@ -25,7 +25,8 @@ class Converters {
     fun frequencyToString(value: Frequency?): String? = value?.name
 
     @TypeConverter
-    fun stringToFrequency(value: String?): Frequency? = value?.let(Frequency::valueOf)
+    fun stringToFrequency(value: String?): Frequency? =
+        if (value == "ONCE") Frequency.NONE else value?.let(Frequency::valueOf)
 
     /** Stores weekdays by enum name in weekday order, producing deterministic values such as `MONDAY,FRIDAY`. */
     @TypeConverter

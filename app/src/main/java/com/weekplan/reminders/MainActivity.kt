@@ -1,8 +1,13 @@
 package com.weekplan.reminders
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -12,8 +17,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import com.weekplan.reminders.dashboard.DashboardFragment
-import com.weekplan.reminders.data.AppGraph
 import com.weekplan.reminders.planner.WeeklyPlannerFragment
+import com.weekplan.reminders.reminders.ReminderApplication
+import com.weekplan.reminders.reminders.ReminderService
 import com.weekplan.reminders.settings.SettingsFragment
 import com.weekplan.reminders.ui.NeoTextView
 import java.time.LocalDate
@@ -28,11 +34,30 @@ class MainActivity : AppCompatActivity(), AppNavigator {
     private lateinit var tabPlanner: NeoTextView
     private lateinit var tabSettings: NeoTextView
 
+    private val notificationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        (application as ReminderApplication).restoreReminders()
+    }
+
+    internal fun requestReminderPermission(userInitiated: Boolean = false): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) return false
+
+        val preferences = getPreferences(MODE_PRIVATE)
+        val requested = preferences.getBoolean(KEY_NOTIFICATION_PERMISSION_REQUESTED, false)
+        if (requested && !(userInitiated && shouldShowRequestPermissionRationale(permission))) return false
+
+        preferences.edit().putBoolean(KEY_NOTIFICATION_PERMISSION_REQUESTED, true).apply()
+        notificationPermission.launch(permission)
+        return true
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Keep the light neobrutalist theme consistent across dark/light modes
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
-        AppGraph.initialize(applicationContext)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
@@ -65,7 +90,22 @@ class MainActivity : AppCompatActivity(), AppNavigator {
             updateTabVisuals()
         } else {
             selectTab(NavTab.TODAY, addToBackStack = false)
+            openReminder(intent)
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        openReminder(intent)
+    }
+
+    private fun openReminder(intent: Intent) {
+        val eventId = intent.getStringExtra(ReminderService.EXTRA_EVENT_ID)?.toLongOrNull() ?: return
+        val date = intent.getStringExtra(ReminderService.EXTRA_OCCURRENCE_DATE)?.let {
+            runCatching { LocalDate.parse(it) }.getOrNull()
+        } ?: return
+        openEventDetails(eventId, date)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -132,6 +172,7 @@ class MainActivity : AppCompatActivity(), AppNavigator {
     }
 
     companion object {
+        private const val KEY_NOTIFICATION_PERMISSION_REQUESTED = "notification_permission_requested"
         private const val KEY_CURRENT_TAB = "current_nav_tab"
     }
 }

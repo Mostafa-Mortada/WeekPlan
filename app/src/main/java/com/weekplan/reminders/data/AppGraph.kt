@@ -2,6 +2,7 @@ package com.weekplan.reminders.data
 
 import android.content.Context
 import androidx.room.Room
+import com.weekplan.reminders.data.dao.EventDao
 import com.weekplan.reminders.data.database.AppDatabase
 import com.weekplan.reminders.data.repository.EventRepository
 import com.weekplan.reminders.data.repository.RoomEventRepository
@@ -12,6 +13,9 @@ object AppGraph {
 
     @Volatile
     private var repository: EventRepository? = null
+
+    internal val eventDao: EventDao
+        get() = checkNotNull(database).eventDao()
 
     val eventRepository: EventRepository
         get() = checkNotNull(repository) {

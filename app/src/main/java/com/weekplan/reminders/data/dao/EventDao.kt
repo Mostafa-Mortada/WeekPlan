@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.weekplan.reminders.data.model.Event
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EventDao {
@@ -25,4 +26,7 @@ interface EventDao {
 
     @Query("SELECT * FROM events ORDER BY startDate, startTime, id")
     suspend fun getAllEvents(): List<Event>
+
+    @Query("SELECT * FROM events WHERE reminderOffsetMinutes IS NOT NULL ORDER BY id")
+    fun observeEventsWithReminders(): Flow<List<Event>>
 }

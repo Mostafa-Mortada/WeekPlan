@@ -397,6 +397,9 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                         parentFragmentManager.popBackStack()
                     }
 
+                    if (event.reminderOffsetMinutes != null) {
+                        (activity as? MainActivity)?.requestReminderPermission()
+                    }
                 } catch (_: Exception) {
                     saveButton.isEnabled = true
                     errorText.text = getString(R.string.event_error_save)

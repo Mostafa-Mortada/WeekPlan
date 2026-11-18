@@ -26,15 +26,19 @@ class DashboardEventAdapter(
     private val locale: Locale = Locale.getDefault()
     private val timeFormat = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
     private var overlapsArray: BooleanArray = BooleanArray(0)
+    private var finishedOccurrenceKeys: Set<String> = emptySet()
 
     fun submitOccurrences(list: List<OccurrenceWithEvent>) {
         overlapsArray = PlannerRows.overlapping(list)
         submitList(list)
     }
 
-    fun refreshStatuses() {
-        if (itemCount > 0) {
-            notifyItemRangeChanged(0, itemCount)
+    fun updateFinishedKeys(keys: Set<String>) {
+        if (finishedOccurrenceKeys != keys) {
+            finishedOccurrenceKeys = keys
+            if (itemCount > 0) {
+                notifyItemRangeChanged(0, itemCount)
+            }
         }
     }
 
@@ -71,8 +75,8 @@ class DashboardEventAdapter(
             title.text = event.title
             overlap.visibility = if (overlaps) View.VISIBLE else View.GONE
 
-            val now = LocalDateTime.now()
-            val isFinished = now.isAfter(occ.endDateTime)
+            val key = "${occ.eventId}_${occ.occurrenceDate}"
+            val isFinished = finishedOccurrenceKeys.contains(key)
             if (isFinished) {
                 statusBadge.visibility = View.VISIBLE
                 statusBadge.text = ctx.getString(R.string.dashboard_event_finished)

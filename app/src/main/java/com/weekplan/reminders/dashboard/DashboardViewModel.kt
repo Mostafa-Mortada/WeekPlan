@@ -11,8 +11,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -24,7 +24,7 @@ data class DashboardUiState(
     val occurrences: List<OccurrenceWithEvent> = emptyList(),
     val nextUp: OccurrenceWithEvent? = null,
     val isHappeningNow: Boolean = false,
-    val lastEvaluatedAt: LocalDateTime = LocalDateTime.MIN,
+    val finishedOccurrenceKeys: Set<String> = emptySet(),
 )
 
 class DashboardViewModel(
@@ -33,7 +33,8 @@ class DashboardViewModel(
 ) : ViewModel() {
 
     private var loadJob: Job? = null
-    private var tickerJob: Job? = null
+    private var boundaryJob: Job? = null
+    private var isSchedulerEnabled = true
     private var lastDate: LocalDate = clockNow().toLocalDate()
 
     private val _state = MutableStateFlow(
@@ -52,17 +53,16 @@ class DashboardViewModel(
                 load(showLoading = false)
             }
         }
-        startTicker()
     }
 
-    private fun startTicker() {
-        tickerJob?.cancel()
-        tickerJob = viewModelScope.launch {
-            while (isActive) {
-                delay(30_000L)
-                tick()
-            }
-        }
+    fun startScheduling() {
+        isSchedulerEnabled = true
+        tick()
+    }
+
+    fun stopScheduling() {
+        isSchedulerEnabled = false
+        boundaryJob?.cancel()
     }
 
     fun tick() {
@@ -72,6 +72,7 @@ class DashboardViewModel(
             load(showLoading = false)
         } else {
             updateNextUpState()
+            scheduleNextBoundary()
         }
     }
 
@@ -80,11 +81,12 @@ class DashboardViewModel(
     }
 
     fun onResume() {
-        tick()
+        startScheduling()
     }
 
     private fun load(showLoading: Boolean) {
         loadJob?.cancel()
+        boundaryJob?.cancel()
         val today = clockNow().toLocalDate()
         lastDate = today
 
@@ -100,6 +102,7 @@ class DashboardViewModel(
                 val now = clockNow()
                 val occurrences = repository.getOccurrences(today, today)
                 val (nextUp, isHappeningNow) = resolveNextUp(occurrences, now)
+                val finishedKeys = resolveFinishedKeys(occurrences, now)
 
                 _state.value = DashboardUiState(
                     today = today,
@@ -107,8 +110,9 @@ class DashboardViewModel(
                     occurrences = occurrences,
                     nextUp = nextUp,
                     isHappeningNow = isHappeningNow,
-                    lastEvaluatedAt = now,
+                    finishedOccurrenceKeys = finishedKeys,
                 )
+                scheduleNextBoundary()
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
@@ -120,18 +124,73 @@ class DashboardViewModel(
         }
     }
 
+    private fun scheduleNextBoundary() {
+        boundaryJob?.cancel()
+        if (!isSchedulerEnabled) return
+
+        val current = _state.value
+        if (current.status != DashboardStatus.CONTENT) return
+
+        val now = clockNow()
+        val nextBoundary = getNextBoundary(current.occurrences, now)
+        val delayMillis = Duration.between(now, nextBoundary).toMillis().coerceAtLeast(0L)
+
+        boundaryJob = viewModelScope.launch {
+            // Buffer with 50ms so clockNow() has definitively crossed the threshold
+            delay(delayMillis + 50L)
+            tick()
+        }
+    }
+
+    private fun getNextBoundary(
+        occurrences: List<OccurrenceWithEvent>,
+        now: LocalDateTime,
+    ): LocalDateTime {
+        val midnight = now.toLocalDate().plusDays(1).atStartOfDay()
+        val upcomingTimes = mutableListOf<LocalDateTime>()
+        upcomingTimes.add(midnight)
+
+        for (item in occurrences) {
+            val start = item.occurrence.startDateTime
+            if (start.isAfter(now)) {
+                upcomingTimes.add(start)
+            }
+            val end = item.occurrence.endDateTime
+            if (end.isAfter(now)) {
+                upcomingTimes.add(end)
+            }
+        }
+
+        return upcomingTimes.minOrNull() ?: midnight
+    }
+
     private fun updateNextUpState() {
         val current = _state.value
         if (current.status != DashboardStatus.CONTENT) return
 
         val now = clockNow()
         val (nextUp, isHappeningNow) = resolveNextUp(current.occurrences, now)
+        val finishedKeys = resolveFinishedKeys(current.occurrences, now)
 
-        _state.value = current.copy(
-            nextUp = nextUp,
-            isHappeningNow = isHappeningNow,
-            lastEvaluatedAt = now,
-        )
+        if (nextUp != current.nextUp ||
+            isHappeningNow != current.isHappeningNow ||
+            finishedKeys != current.finishedOccurrenceKeys
+        ) {
+            _state.value = current.copy(
+                nextUp = nextUp,
+                isHappeningNow = isHappeningNow,
+                finishedOccurrenceKeys = finishedKeys,
+            )
+        }
+    }
+
+    private fun resolveFinishedKeys(
+        occurrences: List<OccurrenceWithEvent>,
+        now: LocalDateTime,
+    ): Set<String> {
+        return occurrences.filter {
+            now.isAfter(it.occurrence.endDateTime)
+        }.map { "${it.occurrence.eventId}_${it.occurrence.occurrenceDate}" }.toSet()
     }
 
     private fun resolveNextUp(

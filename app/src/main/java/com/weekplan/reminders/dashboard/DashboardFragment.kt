@@ -123,7 +123,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
                         emptyCard.visibility = View.GONE
                         eventsList.visibility = View.VISIBLE
                         adapter.submitOccurrences(state.occurrences)
-                        adapter.refreshStatuses()
+                        adapter.updateFinishedKeys(state.finishedOccurrenceKeys)
 
                         // Next up or Happening now card
                         val next = state.nextUp
@@ -173,8 +173,18 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.startScheduling()
+    }
+
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopScheduling()
     }
 }

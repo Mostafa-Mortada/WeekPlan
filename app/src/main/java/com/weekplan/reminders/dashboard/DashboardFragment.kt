@@ -123,6 +123,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
                         emptyCard.visibility = View.GONE
                         eventsList.visibility = View.VISIBLE
                         adapter.submitOccurrences(state.occurrences)
+                        adapter.refreshStatuses()
 
                         // Next up or Happening now card
                         val next = state.nextUp

@@ -76,13 +76,18 @@ class MainActivity : AppCompatActivity(), AppNavigator {
         tabPlanner.setOnClickListener { selectTab(NavTab.PLANNER) }
         tabSettings.setOnClickListener { selectTab(NavTab.SETTINGS) }
 
-        supportFragmentManager.addOnBackStackChangedListener {
+        fun updateNavVisibility() {
             val hasBackStack = supportFragmentManager.backStackEntryCount > 0
             bottomNavBar.visibility = if (hasBackStack) View.GONE else View.VISIBLE
             if (!hasBackStack) {
                 updateTabVisuals()
             }
         }
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            updateNavVisibility()
+        }
+        updateNavVisibility()
 
         if (savedInstanceState != null) {
             val tabName = savedInstanceState.getString(KEY_CURRENT_TAB)

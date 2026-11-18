@@ -7,9 +7,11 @@ import com.weekplan.reminders.data.model.OccurrenceWithEvent
 import com.weekplan.reminders.data.repository.EventRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -22,6 +24,7 @@ data class DashboardUiState(
     val occurrences: List<OccurrenceWithEvent> = emptyList(),
     val nextUp: OccurrenceWithEvent? = null,
     val isHappeningNow: Boolean = false,
+    val lastEvaluatedAt: LocalDateTime = LocalDateTime.MIN,
 )
 
 class DashboardViewModel(
@@ -30,6 +33,7 @@ class DashboardViewModel(
 ) : ViewModel() {
 
     private var loadJob: Job? = null
+    private var tickerJob: Job? = null
     private var lastDate: LocalDate = clockNow().toLocalDate()
 
     private val _state = MutableStateFlow(
@@ -48,6 +52,27 @@ class DashboardViewModel(
                 load(showLoading = false)
             }
         }
+        startTicker()
+    }
+
+    private fun startTicker() {
+        tickerJob?.cancel()
+        tickerJob = viewModelScope.launch {
+            while (isActive) {
+                delay(30_000L)
+                tick()
+            }
+        }
+    }
+
+    fun tick() {
+        val currentDate = clockNow().toLocalDate()
+        if (currentDate != lastDate) {
+            lastDate = currentDate
+            load(showLoading = false)
+        } else {
+            updateNextUpState()
+        }
     }
 
     fun refresh() {
@@ -55,14 +80,7 @@ class DashboardViewModel(
     }
 
     fun onResume() {
-        val currentDate = clockNow().toLocalDate()
-        if (currentDate != lastDate) {
-            lastDate = currentDate
-            load(showLoading = false)
-        } else {
-            // Recompute next-up event as clock time may have advanced
-            updateNextUpState()
-        }
+        tick()
     }
 
     private fun load(showLoading: Boolean) {
@@ -79,8 +97,9 @@ class DashboardViewModel(
 
         loadJob = viewModelScope.launch {
             try {
+                val now = clockNow()
                 val occurrences = repository.getOccurrences(today, today)
-                val (nextUp, isHappeningNow) = resolveNextUp(occurrences, clockNow())
+                val (nextUp, isHappeningNow) = resolveNextUp(occurrences, now)
 
                 _state.value = DashboardUiState(
                     today = today,
@@ -88,6 +107,7 @@ class DashboardViewModel(
                     occurrences = occurrences,
                     nextUp = nextUp,
                     isHappeningNow = isHappeningNow,
+                    lastEvaluatedAt = now,
                 )
             } catch (e: CancellationException) {
                 throw e
@@ -104,11 +124,13 @@ class DashboardViewModel(
         val current = _state.value
         if (current.status != DashboardStatus.CONTENT) return
 
-        val (nextUp, isHappeningNow) = resolveNextUp(current.occurrences, clockNow())
+        val now = clockNow()
+        val (nextUp, isHappeningNow) = resolveNextUp(current.occurrences, now)
 
         _state.value = current.copy(
             nextUp = nextUp,
             isHappeningNow = isHappeningNow,
+            lastEvaluatedAt = now,
         )
     }
 

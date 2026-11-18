@@ -39,15 +39,35 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val dateArgument = arguments?.getString(ARG_DATE)
-
-        selectedDate = dateArgument?.let {
-            LocalDate.parse(it)
-        } ?: LocalDate.now()
-
         editingEventId = arguments?.takeIf {
             it.containsKey(ARG_EVENT_ID)
         }?.getLong(ARG_EVENT_ID)
+
+        if (savedInstanceState != null) {
+            val dateArgument = savedInstanceState.getString(STATE_DATE)
+            selectedDate = dateArgument?.let {
+                LocalDate.parse(it)
+            } ?: (arguments?.getString(ARG_DATE)?.let { LocalDate.parse(it) } ?: LocalDate.now())
+
+            savedInstanceState.getString(STATE_START_TIME)?.let {
+                selectedStartTime = LocalTime.parse(it)
+            }
+            savedInstanceState.getString(STATE_END_TIME)?.let {
+                selectedEndTime = LocalTime.parse(it)
+            }
+            val hasReminder = savedInstanceState.getBoolean(STATE_HAS_REMINDER, false)
+            selectedReminderOffset = if (hasReminder && savedInstanceState.containsKey(STATE_REMINDER_OFFSET)) {
+                savedInstanceState.getInt(STATE_REMINDER_OFFSET)
+            } else {
+                null
+            }
+        } else {
+            val dateArgument = arguments?.getString(ARG_DATE)
+
+            selectedDate = dateArgument?.let {
+                LocalDate.parse(it)
+            } ?: LocalDate.now()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -86,36 +106,41 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
             saveButton.isEnabled = false
         }
 
-        // Repeat switch controls visibility of repeat options
-        repeatSwitch.setOnCheckedChangeListener { _, isChecked ->
-
+        fun updateRepeatVisibility() {
+            val isRepeatOn = repeatSwitch.isChecked
             repeatOptionsContainer.visibility =
-                if (isChecked) View.VISIBLE else View.GONE
-
-            if (!isChecked) {
-                weeklyDaysContainer.visibility = View.GONE
-            } else {
-                weeklyDaysContainer.visibility =
-                    if (repeatGroup.checkedRadioButtonId == R.id.repeat_weekly) {
-                        View.VISIBLE
-                    } else {
-                        View.GONE
-                    }
-            }
-        }
-
-        // Show weekdays only when Weekly is selected
-        repeatGroup.setOnCheckedChangeListener { _, checkedId ->
+                if (isRepeatOn) View.VISIBLE else View.GONE
 
             weeklyDaysContainer.visibility =
-                if (repeatSwitch.isChecked &&
-                    checkedId == R.id.repeat_weekly
-                ) {
+                if (isRepeatOn && repeatGroup.checkedRadioButtonId == R.id.repeat_weekly) {
                     View.VISIBLE
                 } else {
                     View.GONE
                 }
         }
+
+        // Repeat switch controls visibility of repeat options
+        repeatSwitch.setOnCheckedChangeListener { _, _ ->
+            updateRepeatVisibility()
+        }
+
+        // Show weekdays only when Weekly is selected
+        repeatGroup.setOnCheckedChangeListener { _, _ ->
+            updateRepeatVisibility()
+        }
+
+        if (savedInstanceState != null) {
+            repeatSwitch.isChecked = savedInstanceState.getBoolean(STATE_REPEAT_SWITCH, false)
+            val checkedFreq = savedInstanceState.getInt(STATE_REPEAT_GROUP, -1)
+            if (checkedFreq != -1) {
+                repeatGroup.check(checkedFreq)
+            }
+            val weekdayChecked = savedInstanceState.getBooleanArray(STATE_WEEKDAYS)
+            if (weekdayChecked != null && weekdayChecked.size == weekdayCheckBoxes.size) {
+                weekdayCheckBoxes.forEachIndexed { i, cb -> cb.isChecked = weekdayChecked[i] }
+            }
+        }
+        updateRepeatVisibility()
 
         // Read the selected repeat options
         fun getSelectedRepeatRule(): RepeatRule {
@@ -180,7 +205,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         updateReminderText()
 
         // Load default reminder preference from settings when creating a new event
-        if (!isEditing) {
+        if (!isEditing && savedInstanceState == null) {
             viewLifecycleOwner.lifecycleScope.launch {
                 val settings = AppGraph.eventRepository.getSettings()
                 selectedReminderOffset = settings.defaultReminderOffsetMinutes
@@ -201,59 +226,46 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                     }
 
                     existingEvent = event
-
-                    titleInput.setText(event.title)
-                    notesInput.setText(event.notes)
-
-                    selectedDate = event.startDate
-                    selectedStartTime = event.startTime
-                    selectedEndTime = event.endTime
-                    selectedReminderOffset = event.reminderOffsetMinutes
-
-                    // Restore repeat settings
-                    val rule = event.repeatRule
-
-                    // Switch is ON only if the event has a repeat frequency
-                    repeatSwitch.isChecked =
-                        rule.frequency != Frequency.NONE
-
-                    // Restore selected frequency
-                    when (rule.frequency) {
-                        Frequency.NONE -> repeatGroup.clearCheck()
-                        Frequency.DAILY -> repeatGroup.check(R.id.repeat_daily)
-                        Frequency.WEEKLY -> repeatGroup.check(R.id.repeat_weekly)
-                    }
-
-                    // Restore selected weekdays
-                    monday.isChecked = DayOfWeek.MONDAY in rule.weekdays
-                    tuesday.isChecked = DayOfWeek.TUESDAY in rule.weekdays
-                    wednesday.isChecked = DayOfWeek.WEDNESDAY in rule.weekdays
-                    thursday.isChecked = DayOfWeek.THURSDAY in rule.weekdays
-                    friday.isChecked = DayOfWeek.FRIDAY in rule.weekdays
-                    saturday.isChecked = DayOfWeek.SATURDAY in rule.weekdays
-                    sunday.isChecked = DayOfWeek.SUNDAY in rule.weekdays
-
-                    // Restore visibility
-                    repeatOptionsContainer.visibility =
-                        if (rule.frequency != Frequency.NONE) {
-                            View.VISIBLE
-                        } else {
-                            View.GONE
-                        }
-
-                    weeklyDaysContainer.visibility =
-                        if (rule.frequency == Frequency.WEEKLY) {
-                            View.VISIBLE
-                        } else {
-                            View.GONE
-                        }
-
-                    updateDateText()
-                    updateStartText()
-                    updateEndText()
-                    updateReminderText()
-
                     saveButton.isEnabled = true
+
+                    if (savedInstanceState == null) {
+                        titleInput.setText(event.title)
+                        notesInput.setText(event.notes)
+
+                        selectedDate = event.startDate
+                        selectedStartTime = event.startTime
+                        selectedEndTime = event.endTime
+                        selectedReminderOffset = event.reminderOffsetMinutes
+
+                        // Restore repeat settings
+                        val rule = event.repeatRule
+
+                        // Switch is ON only if the event has a repeat frequency
+                        repeatSwitch.isChecked =
+                            rule.frequency != Frequency.NONE
+
+                        // Restore selected frequency
+                        when (rule.frequency) {
+                            Frequency.NONE -> repeatGroup.clearCheck()
+                            Frequency.DAILY -> repeatGroup.check(R.id.repeat_daily)
+                            Frequency.WEEKLY -> repeatGroup.check(R.id.repeat_weekly)
+                        }
+
+                        // Restore selected weekdays
+                        monday.isChecked = DayOfWeek.MONDAY in rule.weekdays
+                        tuesday.isChecked = DayOfWeek.TUESDAY in rule.weekdays
+                        wednesday.isChecked = DayOfWeek.WEDNESDAY in rule.weekdays
+                        thursday.isChecked = DayOfWeek.THURSDAY in rule.weekdays
+                        friday.isChecked = DayOfWeek.FRIDAY in rule.weekdays
+                        saturday.isChecked = DayOfWeek.SATURDAY in rule.weekdays
+                        sunday.isChecked = DayOfWeek.SUNDAY in rule.weekdays
+
+                        updateRepeatVisibility()
+                        updateDateText()
+                        updateStartText()
+                        updateEndText()
+                        updateReminderText()
+                    }
 
                 } catch (_: Exception) {
                     errorText.text = getString(R.string.event_error_save)
@@ -409,9 +421,65 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_DATE, selectedDate.toString())
+        outState.putString(STATE_START_TIME, selectedStartTime.toString())
+        outState.putString(STATE_END_TIME, selectedEndTime.toString())
+        val offset = selectedReminderOffset
+        outState.putBoolean(STATE_HAS_REMINDER, offset != null)
+        if (offset != null) {
+            outState.putInt(STATE_REMINDER_OFFSET, offset)
+        }
+
+        view?.let { v ->
+            val repeatSwitch = v.findViewById<Switch>(R.id.repeat_switch)
+            val repeatGroup = v.findViewById<RadioGroup>(R.id.repeat_frequency_group)
+            val monday = v.findViewById<CheckBox>(R.id.day_monday)
+            val tuesday = v.findViewById<CheckBox>(R.id.day_tuesday)
+            val wednesday = v.findViewById<CheckBox>(R.id.day_wednesday)
+            val thursday = v.findViewById<CheckBox>(R.id.day_thursday)
+            val friday = v.findViewById<CheckBox>(R.id.day_friday)
+            val saturday = v.findViewById<CheckBox>(R.id.day_saturday)
+            val sunday = v.findViewById<CheckBox>(R.id.day_sunday)
+
+            if (repeatSwitch != null) {
+                outState.putBoolean(STATE_REPEAT_SWITCH, repeatSwitch.isChecked)
+            }
+            if (repeatGroup != null) {
+                outState.putInt(STATE_REPEAT_GROUP, repeatGroup.checkedRadioButtonId)
+            }
+            if (monday != null && tuesday != null && wednesday != null && thursday != null &&
+                friday != null && saturday != null && sunday != null
+            ) {
+                outState.putBooleanArray(
+                    STATE_WEEKDAYS,
+                    booleanArrayOf(
+                        monday.isChecked,
+                        tuesday.isChecked,
+                        wednesday.isChecked,
+                        thursday.isChecked,
+                        friday.isChecked,
+                        saturday.isChecked,
+                        sunday.isChecked
+                    )
+                )
+            }
+        }
+    }
+
     companion object {
         private const val ARG_DATE = "event_date"
         private const val ARG_EVENT_ID = "event_id"
+
+        private const val STATE_DATE = "state_selected_date"
+        private const val STATE_START_TIME = "state_selected_start_time"
+        private const val STATE_END_TIME = "state_selected_end_time"
+        private const val STATE_HAS_REMINDER = "state_has_reminder"
+        private const val STATE_REMINDER_OFFSET = "state_selected_reminder_offset"
+        private const val STATE_REPEAT_SWITCH = "state_repeat_switch"
+        private const val STATE_REPEAT_GROUP = "state_repeat_group"
+        private const val STATE_WEEKDAYS = "state_weekdays"
 
         fun newInstance(date: LocalDate): EventFormFragment {
             return EventFormFragment().apply {

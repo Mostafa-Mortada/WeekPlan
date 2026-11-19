@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wp_bg"
     android:fillViewport="true">
 
     <LinearLayout
@@ -83,7 +82,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:backgroundTint="@color/wp_ink"
-                android:hint="@string/event_title_hint"
                 android:importantForAutofill="no"
                 android:inputType="textCapSentences"
                 android:maxLines="1"
@@ -205,7 +203,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Repeat"
+                        android:text="@string/event_repeat_heading"
                         android:textColor="@color/wp_ink"
                         android:textStyle="bold" />
 
@@ -213,13 +211,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Repeat this event"
+                        android:text="@string/event_repeat_label"
                         android:textColor="@color/wp_ink"
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <Switch
+                <com.weekplan.reminders.ui.NeoSwitch
                     android:id="@+id/repeat_switch"
+                    android:contentDescription="@string/event_repeat_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="false" />
@@ -237,7 +236,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Repeat frequency"
+                    android:text="@string/event_repeat_frequency"
                     android:textColor="@color/wp_ink"
                     android:textStyle="bold" />
 
@@ -248,18 +247,18 @@
                     android:layout_marginTop="4dp"
                     android:orientation="horizontal">
 
-                    <RadioButton
+                    <com.weekplan.reminders.ui.NeoRadioButton
                         android:id="@+id/repeat_daily"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Daily"
+                        android:text="@string/event_repeat_daily"
                         android:textColor="@color/wp_ink" />
 
-                    <RadioButton
+                    <com.weekplan.reminders.ui.NeoRadioButton
                         android:id="@+id/repeat_weekly"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Weekly"
+                        android:text="@string/event_repeat_weekly"
                         android:textColor="@color/wp_ink" />
                 </RadioGroup>
 
@@ -275,7 +274,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Choose days"
+                        android:text="@string/event_repeat_choose_days"
                         android:textColor="@color/wp_ink"
                         android:textStyle="bold" />
 
@@ -284,32 +283,32 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_monday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Mon"
+                            android:text="@string/weekday_monday"
                             android:textColor="@color/wp_ink" />
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_tuesday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tue"
+                            android:text="@string/weekday_tuesday"
                             android:textColor="@color/wp_ink" />
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_wednesday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Wed"
+                            android:text="@string/weekday_wednesday"
                             android:textColor="@color/wp_ink" />
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_thursday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Thu"
+                            android:text="@string/weekday_thursday"
                             android:textColor="@color/wp_ink" />
                     </LinearLayout>
 
@@ -318,25 +317,25 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_friday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Fri"
+                            android:text="@string/weekday_friday"
                             android:textColor="@color/wp_ink" />
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_saturday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Sat"
+                            android:text="@string/weekday_saturday"
                             android:textColor="@color/wp_ink" />
 
-                        <CheckBox
+                        <com.weekplan.reminders.ui.NeoCheckBox
                             android:id="@+id/day_sunday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Sun"
+                            android:text="@string/weekday_sunday"
                             android:textColor="@color/wp_ink" />
                     </LinearLayout>
                 </LinearLayout>
@@ -360,7 +359,6 @@
                 android:layout_marginTop="6dp"
                 android:backgroundTint="@color/wp_ink"
                 android:gravity="top|start"
-                android:hint="@string/event_notes_hint"
                 android:importantForAutofill="no"
                 android:inputType="textCapSentences|textMultiLine"
                 android:imeOptions="flagNoExtractUi"

@@ -92,7 +92,7 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
                 }
 
                 timeText.text =
-                    "${event.startTime.format(timeFormatter)} – ${event.endTime.format(timeFormatter)}"
+                    getString(R.string.event_details_time_range, event.startTime.format(timeFormatter), event.endTime.format(timeFormatter))
 
                 notesText.text = event.notes.ifBlank {
                     getString(R.string.event_details_no_notes)
@@ -158,15 +158,13 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
                 getString(R.string.event_details_hour_before)
 
             minutes > 60 && minutes % 60 == 0 ->
-                getString(
-                    R.string.event_details_hours_before,
-                    minutes / 60
+                resources.getQuantityString(
+                    R.plurals.event_details_hours_before, minutes / 60, minutes / 60
                 )
 
             else ->
-                getString(
-                    R.string.event_details_minutes_before,
-                    minutes
+                resources.getQuantityString(
+                    R.plurals.event_details_minutes_before, minutes, minutes
                 )
         }
     }

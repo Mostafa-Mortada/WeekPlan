@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wp_bg"
     android:fillViewport="true">
 
     <LinearLayout
@@ -88,42 +87,42 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp">
 
-                <RadioButton
+                <com.weekplan.reminders.ui.NeoRadioButton
                     android:id="@+id/settings_offset_none"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_offset_none"
                     android:textColor="@color/wp_ink" />
 
-                <RadioButton
+                <com.weekplan.reminders.ui.NeoRadioButton
                     android:id="@+id/settings_offset_0"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_offset_at_start"
                     android:textColor="@color/wp_ink" />
 
-                <RadioButton
+                <com.weekplan.reminders.ui.NeoRadioButton
                     android:id="@+id/settings_offset_5"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_offset_5"
                     android:textColor="@color/wp_ink" />
 
-                <RadioButton
+                <com.weekplan.reminders.ui.NeoRadioButton
                     android:id="@+id/settings_offset_15"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_offset_15"
                     android:textColor="@color/wp_ink" />
 
-                <RadioButton
+                <com.weekplan.reminders.ui.NeoRadioButton
                     android:id="@+id/settings_offset_30"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_offset_30"
                     android:textColor="@color/wp_ink" />
 
-                <RadioButton
+                <com.weekplan.reminders.ui.NeoRadioButton
                     android:id="@+id/settings_offset_60"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

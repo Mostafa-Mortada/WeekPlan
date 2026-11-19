@@ -118,10 +118,10 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
                         eventsList.visibility = View.GONE
                     } else {
                         countText.text = resources.getQuantityString(
-                            R.plurals.planner_event_count,
+                            R.plurals.dashboard_planned_event_count,
                             totalEvents,
                             totalEvents
-                        ) + " planned today"
+                        )
                         emptyCard.visibility = View.GONE
                         eventsList.visibility = View.VISIBLE
                         adapter.submitOccurrences(state.occurrences)
@@ -148,7 +148,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
                             nextUpTitle.text = next.event.title
                             val startStr = next.occurrence.startDateTime.format(timeFormat)
                             val endStr = next.occurrence.endDateTime.format(timeFormat)
-                            nextUpTime.text = "$startStr → $endStr"
+                            nextUpTime.text = getString(R.string.event_time_range, startStr, endStr)
 
                             nextUpCard.neoFill = EventColors.colorFor(requireContext(), next.event.id)
 

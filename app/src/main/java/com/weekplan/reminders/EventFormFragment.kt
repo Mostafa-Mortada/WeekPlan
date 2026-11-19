@@ -8,7 +8,7 @@ import android.widget.RadioGroup
 import android.widget.CheckBox
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.Switch
+import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.FragmentManager
@@ -17,11 +17,13 @@ import com.weekplan.reminders.data.AppGraph
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.data.model.RepeatRule
+import com.weekplan.reminders.ui.EventTimeDefaults
 import com.weekplan.reminders.ui.NeoTextView
 import com.weekplan.reminders.ui.NeoDialogFragment
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
@@ -32,8 +34,8 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
     private var formInitialized = false
     private var initializeForm: (() -> Unit)? = null
     private lateinit var selectedDate: LocalDate
-    private var selectedStartTime = LocalTime.of(9, 0)
-    private var selectedEndTime = LocalTime.of(10, 0)
+    private var selectedStartTime = LocalTime.MIDNIGHT
+    private var selectedEndTime = LocalTime.of(1, 0)
     private var selectedReminderOffset: Int? = 15
     private var editingEventId: Long? = null
     private var existingEvent: Event? = null
@@ -68,9 +70,14 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         } else {
             val dateArgument = arguments?.getString(ARG_DATE)
 
-            selectedDate = dateArgument?.let {
-                LocalDate.parse(it)
-            } ?: LocalDate.now()
+            val now = LocalDateTime.now()
+            selectedDate = dateArgument?.let(LocalDate::parse) ?: now.toLocalDate()
+            if (editingEventId == null && !formInitialized) {
+                val defaults = EventTimeDefaults.nextHour(now, selectedDate)
+                selectedDate = defaults.date
+                selectedStartTime = defaults.start
+                selectedEndTime = defaults.end
+            }
         }
     }
 
@@ -111,7 +118,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         enableFields(false)
 
         // Repeat views
-        val repeatSwitch = view.findViewById<Switch>(R.id.repeat_switch)
+        val repeatSwitch = view.findViewById<SwitchCompat>(R.id.repeat_switch)
         val repeatOptionsContainer = view.findViewById<LinearLayout>(R.id.repeat_options_container)
         val repeatGroup = view.findViewById<RadioGroup>(R.id.repeat_frequency_group)
         val weeklyDaysContainer = view.findViewById<LinearLayout>(R.id.weekly_days_container)
@@ -218,7 +225,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
             15 -> getString(R.string.settings_offset_15)
             30 -> getString(R.string.settings_offset_30)
             60 -> getString(R.string.settings_offset_60)
-            else -> getString(R.string.event_details_minutes_before, offset)
+            else -> resources.getQuantityString(R.plurals.event_details_minutes_before, offset, offset)
         }
 
         fun updateReminderText() {
@@ -351,10 +358,10 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                     getString(R.string.event_error_title_required)
 
                 titleInput.text.length > titleLimit ->
-                    getString(R.string.event_error_title_too_long, titleLimit)
+                    resources.getQuantityString(R.plurals.event_error_title_too_long, titleLimit, titleLimit)
 
                 notesInput.text.length > notesLimit ->
-                    getString(R.string.event_error_notes_too_long, notesLimit)
+                    resources.getQuantityString(R.plurals.event_error_notes_too_long, notesLimit, notesLimit)
 
                 !selectedEndTime.isAfter(selectedStartTime) ->
                     getString(R.string.event_error_time_order)
@@ -466,7 +473,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         view?.let { v ->
             outState.putString(STATE_TITLE, v.findViewById<EditText>(R.id.event_title).text.toString())
             outState.putString(STATE_NOTES, v.findViewById<EditText>(R.id.event_notes).text.toString())
-            val repeatSwitch = v.findViewById<Switch>(R.id.repeat_switch)
+            val repeatSwitch = v.findViewById<SwitchCompat>(R.id.repeat_switch)
             val repeatGroup = v.findViewById<RadioGroup>(R.id.repeat_frequency_group)
             val monday = v.findViewById<CheckBox>(R.id.day_monday)
             val tuesday = v.findViewById<CheckBox>(R.id.day_tuesday)

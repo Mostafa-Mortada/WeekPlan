@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity(), AppNavigator {
         val requested = preferences.getBoolean(KEY_NOTIFICATION_PERMISSION_REQUESTED, false)
         if (requested && !(userInitiated && shouldShowRequestPermissionRationale(permission))) return false
 
-        preferences.edit().putBoolean(KEY_NOTIFICATION_PERMISSION_REQUESTED, true).apply()
+        preferences.edit { putBoolean(KEY_NOTIFICATION_PERMISSION_REQUESTED, true) }
         notificationPermission.launch(permission)
         return true
     }

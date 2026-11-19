@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AppBarLayout.SCROLL_FLAG_SCROLL: travel with the agenda in landscape. -->
+    <integer name="agenda_header_scroll_flags">1</integer>
+</resources>

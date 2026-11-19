@@ -150,8 +150,13 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private fun openSystemNotificationSettings() {
         try {
-            val intent = Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                putExtra(AndroidSettings.EXTRA_APP_PACKAGE, requireContext().packageName)
+            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(AndroidSettings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                }
+            } else {
+                Intent(AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", requireContext().packageName, null))
             }
             startActivity(intent)
         } catch (_: Exception) {

@@ -1,99 +1,114 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version='1.0' encoding='utf-8'?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/wp_bg">
-    <LinearLayout
+    android:layout_height="match_parent">
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/planner_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp">
-        <TextView
-            style="@style/WP.Text.Display"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/planner_brand"
-            android:textSize="24sp" />
-        <com.weekplan.reminders.ui.NeoTextView
-            style="@style/WP.Text.Chip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="@string/planner_tag"
-            app:neoFill="@color/wp_yellow"
-            app:neoShadow="2dp" />
-    </LinearLayout>
-    <com.weekplan.reminders.ui.NeoLinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="8dp"
-        android:padding="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        app:neoFill="@color/wp_paper"
-        app:neoShadow="4dp">
+        android:background="@color/wp_bg"
+        app:elevation="0dp"
+        app:liftOnScroll="false">
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/week_range"
-                style="@style/WP.Text.Display"
+            android:orientation="vertical"
+            android:paddingBottom="8dp"
+            app:layout_scrollFlags="@integer/agenda_header_scroll_flags">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp" />
-            <com.weekplan.reminders.ui.NeoTextView
-                android:id="@+id/week_chip"
-                style="@style/WP.Text.Chip"
-                android:layout_width="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="8dp">
+                <TextView
+                    style="@style/WP.Text.Display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/planner_brand"
+                    android:textSize="24sp"/>
+                <com.weekplan.reminders.ui.NeoTextView
+                    style="@style/WP.Text.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/planner_tag"
+                    app:neoFill="@color/wp_yellow"
+                    app:neoShadow="2dp"/>
+            </LinearLayout>
+            <com.weekplan.reminders.ui.NeoLinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:neoFill="@color/wp_green"
-                app:neoShadow="2dp" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:padding="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:neoFill="@color/wp_paper"
+                app:neoShadow="4dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/week_range"
+                        style="@style/WP.Text.Display"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"/>
+                    <com.weekplan.reminders.ui.NeoTextView
+                        android:id="@+id/week_chip"
+                        style="@style/WP.Text.Chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        app:neoFill="@color/wp_green"
+                        app:neoShadow="2dp"/>
+                </LinearLayout>
+                <com.weekplan.reminders.ui.NeoTextView
+                    android:id="@+id/week_prev"
+                    style="@style/WP.Text.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/planner_prev"
+                    android:contentDescription="@string/planner_cd_prev"
+                    app:neoFill="@color/wp_paper"/>
+                <com.weekplan.reminders.ui.NeoTextView
+                    android:id="@+id/week_today"
+                    style="@style/WP.Text.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/planner_today"
+                    android:contentDescription="@string/planner_cd_today_button"
+                    app:neoFill="@color/wp_yellow"/>
+                <com.weekplan.reminders.ui.NeoTextView
+                    android:id="@+id/week_next"
+                    style="@style/WP.Text.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/planner_next"
+                    android:contentDescription="@string/planner_cd_next"
+                    app:neoFill="@color/wp_paper"/>
+            </com.weekplan.reminders.ui.NeoLinearLayout>
         </LinearLayout>
-        <com.weekplan.reminders.ui.NeoTextView
-            android:id="@+id/week_prev"
-            style="@style/WP.Text.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="@string/planner_prev"
-            android:contentDescription="@string/planner_cd_prev"
-            app:neoFill="@color/wp_paper" />
-        <com.weekplan.reminders.ui.NeoTextView
-            android:id="@+id/week_today"
-            style="@style/WP.Text.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/planner_today"
-            android:contentDescription="@string/planner_cd_today_button"
-            app:neoFill="@color/wp_yellow" />
-        <com.weekplan.reminders.ui.NeoTextView
-            android:id="@+id/week_next"
-            style="@style/WP.Text.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/planner_next"
-            android:contentDescription="@string/planner_cd_next"
-            app:neoFill="@color/wp_paper" />
-    </com.weekplan.reminders.ui.NeoLinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/planner_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="16dp"
-        android:clipToPadding="false" />
-</LinearLayout>
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

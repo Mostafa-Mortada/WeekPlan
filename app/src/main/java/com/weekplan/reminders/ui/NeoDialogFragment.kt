@@ -2,7 +2,6 @@ package com.weekplan.reminders.ui
 
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
@@ -15,7 +14,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatDialog
-import androidx.core.os.bundleOf
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import com.weekplan.reminders.R
 import java.time.LocalDate
@@ -87,9 +86,9 @@ class NeoDialogFragment : DialogFragment() {
                 // Commit typed spinner values before reading them.
                 content.clearFocus()
                 val result = when (mode) {
-                    DATE -> bundleOf(VALUE to LocalDate.of(pickerDate.year, pickerDate.month + 1, pickerDate.dayOfMonth).toString())
-                    TIME -> bundleOf(VALUE to LocalTime.of(pickerTime.hour, pickerTime.minute).toString())
-                    CHOICE -> bundleOf(INDEX to selectedChoice)
+                    DATE -> Bundle().apply { putString(VALUE, LocalDate.of(pickerDate.year, pickerDate.month + 1, pickerDate.dayOfMonth).toString()) }
+                    TIME -> Bundle().apply { putString(VALUE, LocalTime.of(pickerTime.hour, pickerTime.minute).toString()) }
+                    CHOICE -> Bundle().apply { putInt(INDEX, selectedChoice) }
                     else -> Bundle.EMPTY
                 }
                 parentFragmentManager.setFragmentResult(args.getString(REQUEST)!!, result)
@@ -104,7 +103,7 @@ class NeoDialogFragment : DialogFragment() {
         val density = resources.displayMetrics.density
         val width = minOf(resources.displayMetrics.widthPixels - (32 * density).toInt(), (420 * density).toInt())
         dialog?.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
             val maxHeight = (resources.displayMetrics.heightPixels * 0.85f).toInt()
             val content = findViewById<View>(android.R.id.content)
             content.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
@@ -155,7 +154,11 @@ class NeoDialogFragment : DialogFragment() {
             requireArguments().putInt(MESSAGE, message)
         }
         private fun new(mode: String, request: String, title: Int) = NeoDialogFragment().apply {
-            arguments = bundleOf(MODE to mode, REQUEST to request, TITLE to title)
+            arguments = Bundle().apply {
+                putString(MODE, mode)
+                putString(REQUEST, request)
+                putInt(TITLE, title)
+            }
         }
     }
 }

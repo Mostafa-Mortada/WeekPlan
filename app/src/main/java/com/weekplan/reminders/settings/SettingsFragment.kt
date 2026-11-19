@@ -19,6 +19,7 @@ import com.weekplan.reminders.data.model.Settings
 import com.weekplan.reminders.reminders.ReminderService
 import com.weekplan.reminders.ui.NeoTextView
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
@@ -27,6 +28,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private lateinit var alarmAction: NeoTextView
     private lateinit var reminderGroup: RadioGroup
     private var isProgrammaticCheck = false
+    private var loadSettingsAfterRestore: (() -> Unit)? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -38,28 +40,58 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         alarmAction.setOnClickListener { openExactAlarmSettings() }
         val permButton = view.findViewById<NeoTextView>(R.id.settings_perm_action_btn)
 
-        // Load existing settings
-        viewLifecycleOwner.lifecycleScope.launch {
-            val settings = AppGraph.eventRepository.getSettings()
+        val error = view.findViewById<TextView>(R.id.settings_storage_error)
+        val retry = view.findViewById<NeoTextView>(R.id.settings_storage_retry)
+        var isLoadingSettings = true
+        var savedRadioId = R.id.settings_offset_15
+        fun enableChoices(enabled: Boolean) {
+            for (i in 0 until reminderGroup.childCount) reminderGroup.getChildAt(i).isEnabled = enabled
+        }
+        fun checkChoice(id: Int) {
             isProgrammaticCheck = true
-            val radioId = OFFSET_TO_RADIO_ID[settings.defaultReminderOffsetMinutes] ?: R.id.settings_offset_15
-            reminderGroup.check(radioId)
+            reminderGroup.check(id)
             isProgrammaticCheck = false
         }
-
-        reminderGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (isProgrammaticCheck) return@setOnCheckedChangeListener
-
-            val offset = if (checkedId in RADIO_ID_TO_OFFSET) {
-                RADIO_ID_TO_OFFSET[checkedId]
-            } else {
-                DEFAULT_FALLBACK_OFFSET
-            }
-
+        fun loadSettings() {
+            isLoadingSettings = true
+            enableChoices(false)
+            error.visibility = View.GONE
+            retry.visibility = View.GONE
             viewLifecycleOwner.lifecycleScope.launch {
-                AppGraph.eventRepository.saveSettings(
-                    Settings(defaultReminderOffsetMinutes = offset)
-                )
+                try {
+                    val settings = AppGraph.eventRepository.getSettings()
+                    savedRadioId = OFFSET_TO_RADIO_ID[settings.defaultReminderOffsetMinutes] ?: R.id.settings_offset_15
+                    checkChoice(savedRadioId)
+                    isLoadingSettings = false
+                    enableChoices(true)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    error.setText(R.string.settings_load_error)
+                    error.visibility = View.VISIBLE
+                    retry.visibility = View.VISIBLE
+                }
+            }
+        }
+        retry.setOnClickListener { loadSettings() }
+        loadSettingsAfterRestore = { loadSettings() }
+        reminderGroup.setOnCheckedChangeListener { _, checkedId ->
+            if (isLoadingSettings || isProgrammaticCheck || checkedId !in RADIO_ID_TO_OFFSET) return@setOnCheckedChangeListener
+            enableChoices(false)
+            error.visibility = View.GONE
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    AppGraph.eventRepository.saveSettings(Settings(defaultReminderOffsetMinutes = RADIO_ID_TO_OFFSET[checkedId]))
+                    savedRadioId = checkedId
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    checkChoice(savedRadioId)
+                    error.setText(R.string.settings_save_error)
+                    error.visibility = View.VISIBLE
+                } finally {
+                    enableChoices(true)
+                }
             }
         }
 
@@ -69,6 +101,16 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         }
 
         updateNotificationStatus()
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        loadSettingsAfterRestore?.invoke()
+    }
+
+    override fun onDestroyView() {
+        loadSettingsAfterRestore = null
+        super.onDestroyView()
     }
 
     override fun onResume() {
@@ -130,6 +172,5 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             60 to R.id.settings_offset_60,
         )
         private val RADIO_ID_TO_OFFSET = OFFSET_TO_RADIO_ID.entries.associate { (k, v) -> v to k }
-        private const val DEFAULT_FALLBACK_OFFSET = 15
     }
 }

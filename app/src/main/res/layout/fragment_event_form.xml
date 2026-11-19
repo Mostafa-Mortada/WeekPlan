@@ -58,6 +58,7 @@
 
         <!-- Form card -->
         <com.weekplan.reminders.ui.NeoLinearLayout
+            android:id="@+id/event_form_fields"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -71,11 +72,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/event_title_label"
+                android:labelFor="@id/event_title"
                 android:textColor="@color/wp_ink"
                 android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/event_title"
+                android:maxLength="@integer/event_title_max_length"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
@@ -88,6 +91,14 @@
                 android:padding="10dp"
                 android:textColor="@color/wp_ink"
                 android:textColorHint="#777777" />
+
+            <TextView
+                android:id="@+id/event_title_count"
+                style="@style/WP.Text.Small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:layout_marginTop="4dp" />
 
             <!-- Date -->
             <TextView
@@ -337,11 +348,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="@string/event_notes_label"
+                android:labelFor="@id/event_notes"
                 android:textColor="@color/wp_ink"
                 android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/event_notes"
+                android:maxLength="@integer/event_notes_max_length"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
@@ -350,11 +363,20 @@
                 android:hint="@string/event_notes_hint"
                 android:importantForAutofill="no"
                 android:inputType="textCapSentences|textMultiLine"
+                android:imeOptions="flagNoExtractUi"
                 android:minHeight="100dp"
                 android:minLines="3"
                 android:padding="10dp"
                 android:textColor="@color/wp_ink"
                 android:textColorHint="#777777" />
+
+            <TextView
+                android:id="@+id/event_notes_count"
+                style="@style/WP.Text.Small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:layout_marginTop="4dp" />
 
         </com.weekplan.reminders.ui.NeoLinearLayout>
 
@@ -366,6 +388,16 @@
             android:layout_marginTop="12dp"
             android:textColor="#C62828"
             android:visibility="gone" />
+
+        <com.weekplan.reminders.ui.NeoTextView
+            android:id="@+id/form_retry"
+            style="@style/WP.Text.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_storage_retry"
+            android:visibility="gone"
+            app:neoFill="@color/wp_yellow" />
 
         <!-- Action buttons -->
         <LinearLayout

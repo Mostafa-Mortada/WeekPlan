@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -29,6 +30,12 @@ class MainActivity : AppCompatActivity(), AppNavigator {
     enum class NavTab { TODAY, PLANNER, SETTINGS }
 
     private var currentTab: NavTab = NavTab.TODAY
+    private val backFromEvent = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            supportFragmentManager.popBackStackImmediate()
+            updateNavVisibility()
+        }
+    }
     private lateinit var bottomNavBar: View
     private lateinit var tabToday: NeoTextView
     private lateinit var tabPlanner: NeoTextView
@@ -68,7 +75,8 @@ class MainActivity : AppCompatActivity(), AppNavigator {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, maxOf(systemBars.bottom, ime.bottom))
             insets
         }
 
@@ -76,13 +84,7 @@ class MainActivity : AppCompatActivity(), AppNavigator {
         tabPlanner.setOnClickListener { selectTab(NavTab.PLANNER) }
         tabSettings.setOnClickListener { selectTab(NavTab.SETTINGS) }
 
-        fun updateNavVisibility() {
-            val hasBackStack = supportFragmentManager.backStackEntryCount > 0
-            bottomNavBar.visibility = if (hasBackStack) View.GONE else View.VISIBLE
-            if (!hasBackStack) {
-                updateTabVisuals()
-            }
-        }
+        onBackPressedDispatcher.addCallback(this, backFromEvent)
 
         supportFragmentManager.addOnBackStackChangedListener {
             updateNavVisibility()
@@ -97,6 +99,19 @@ class MainActivity : AppCompatActivity(), AppNavigator {
             selectTab(NavTab.TODAY, addToBackStack = false)
             openReminder(intent)
         }
+    }
+
+    private fun updateNavVisibility() {
+        val hasBackStack = supportFragmentManager.backStackEntryCount > 0
+        bottomNavBar.visibility = if (hasBackStack) View.GONE else View.VISIBLE
+        backFromEvent.isEnabled = hasBackStack
+        if (!hasBackStack) updateTabVisuals()
+    }
+
+    override fun onPostResume() {
+        super.onPostResume()
+        // Run after restored fragments and their views have resumed.
+        updateNavVisibility()
     }
 
     override fun onNewIntent(intent: Intent) {

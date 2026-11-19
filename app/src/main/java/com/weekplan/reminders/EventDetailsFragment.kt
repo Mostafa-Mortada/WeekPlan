@@ -1,6 +1,5 @@
 package com.weekplan.reminders
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -11,6 +10,8 @@ import com.weekplan.reminders.data.AppGraph
 import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.ui.NeoTextView
+import com.weekplan.reminders.ui.NeoDialogFragment
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -46,6 +47,21 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
         val editButton = view.findViewById<NeoTextView>(R.id.details_edit)
         val deleteButton = view.findViewById<NeoTextView>(R.id.details_delete)
 
+        childFragmentManager.setFragmentResultListener("confirm_delete", viewLifecycleOwner) { _, _ ->
+            deleteButton.isEnabled = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    AppGraph.eventRepository.deleteEvent(eventId)
+                    parentFragmentManager.popBackStack()
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    deleteButton.isEnabled = true
+                    errorText.setText(R.string.event_details_delete_error)
+                    errorText.visibility = View.VISIBLE
+                }
+            }
+        }
         editButton.isEnabled = false
         deleteButton.isEnabled = false
 
@@ -100,7 +116,7 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
                 }
 
                 deleteButton.setOnClickListener {
-                    showDeleteConfirmation(event)
+                    showDeleteConfirmation()
                 }
 
             } catch (_: Exception) {
@@ -155,25 +171,10 @@ class EventDetailsFragment : Fragment(R.layout.fragment_event_details) {
         }
     }
 
-    private fun showDeleteConfirmation(event: Event) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.event_details_delete_confirm_title)
-            .setMessage(R.string.event_details_delete_confirm_message)
-            .setNegativeButton(R.string.event_details_delete_cancel, null)
-            .setPositiveButton(R.string.event_details_delete_confirm) { _, _ ->
-                viewLifecycleOwner.lifecycleScope.launch {
-                    try {
-                        AppGraph.eventRepository.deleteEvent(event.id)
-                        parentFragmentManager.popBackStack()
-                    } catch (_: Exception) {
-                        view?.findViewById<TextView>(R.id.details_error)?.apply {
-                            text = getString(R.string.event_details_delete_error)
-                            visibility = View.VISIBLE
-                        }
-                    }
-                }
-            }
-            .show()
+    private fun showDeleteConfirmation() {
+        if (childFragmentManager.findFragmentByTag("delete") != null) return
+        NeoDialogFragment.confirm("confirm_delete", R.string.event_details_delete_confirm_title,
+            R.string.event_details_delete_confirm_message).showNow(childFragmentManager, "delete")
     }
 
     companion object {

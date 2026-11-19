@@ -11,4 +11,5 @@
     <color name="wp_orange">#FF8A3D</color>
     <color name="wp_purple">#B794F6</color>
     <color name="wp_skeleton">#E2E2E2</color>
+    <color name="wp_error">#C62828</color>
 </resources>

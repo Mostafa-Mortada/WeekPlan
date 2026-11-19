@@ -132,6 +132,25 @@
             </RadioGroup>
         </com.weekplan.reminders.ui.NeoLinearLayout>
 
+        <TextView
+            android:id="@+id/settings_storage_error"
+            style="@style/WP.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:accessibilityLiveRegion="polite"
+            android:textColor="#C62828"
+            android:visibility="gone" />
+        <com.weekplan.reminders.ui.NeoTextView
+            android:id="@+id/settings_storage_retry"
+            style="@style/WP.Text.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_storage_retry"
+            android:visibility="gone"
+            app:neoFill="@color/wp_yellow" />
+
         <!-- Section 2: Notifications Permission -->
         <TextView
             style="@style/WP.Text.Display"

@@ -1,5 +1,8 @@
 package com.weekplan.reminders.planner
 
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,9 +18,11 @@ import java.time.LocalDate
 class PlannerViewModel(
     private val repository: EventRepository,
     private val today: () -> LocalDate = { LocalDate.now() },
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
-    private var weekStart: LocalDate = WeekMath.weekStartOf(today())
+    private var weekStart: LocalDate = savedState.get<String>("week_start")?.let(LocalDate::parse)
+        ?: WeekMath.weekStartOf(today())
     private var shownToday: LocalDate = today()
     private var loadJob: Job? = null
 
@@ -48,6 +53,7 @@ class PlannerViewModel(
     private fun goToWeek(start: LocalDate) {
         if (start == weekStart && _state.value.status != PlannerStatus.ERROR) return
         weekStart = start
+        savedState["week_start"] = start.toString()
         load(showSkeleton = true)
     }
 
@@ -73,5 +79,9 @@ class PlannerViewModel(
     class Factory(private val repository: EventRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = PlannerViewModel(repository) as T
+
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
+            PlannerViewModel(repository, savedState = extras.createSavedStateHandle()) as T
     }
 }

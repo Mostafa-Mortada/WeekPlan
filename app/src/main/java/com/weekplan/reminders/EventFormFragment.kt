@@ -1,17 +1,16 @@
 package com.weekplan.reminders
 
-import android.app.AlertDialog
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.RadioGroup
 import android.widget.CheckBox
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Switch
 import androidx.fragment.app.Fragment
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import com.weekplan.reminders.data.AppGraph
@@ -19,6 +18,8 @@ import com.weekplan.reminders.data.model.Event
 import com.weekplan.reminders.data.model.Frequency
 import com.weekplan.reminders.data.model.RepeatRule
 import com.weekplan.reminders.ui.NeoTextView
+import com.weekplan.reminders.ui.NeoDialogFragment
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -28,6 +29,8 @@ import java.util.Locale
 
 class EventFormFragment : Fragment(R.layout.fragment_event_form) {
 
+    private var formInitialized = false
+    private var initializeForm: (() -> Unit)? = null
     private lateinit var selectedDate: LocalDate
     private var selectedStartTime = LocalTime.of(9, 0)
     private var selectedEndTime = LocalTime.of(10, 0)
@@ -39,6 +42,7 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        formInitialized = savedInstanceState?.getBoolean(STATE_INITIALIZED) ?: formInitialized
         editingEventId = arguments?.takeIf {
             it.containsKey(ARG_EVENT_ID)
         }?.getLong(ARG_EVENT_ID)
@@ -75,6 +79,18 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
 
         val titleInput = view.findViewById<EditText>(R.id.event_title)
         val notesInput = view.findViewById<EditText>(R.id.event_notes)
+        val titleLimit = resources.getInteger(R.integer.event_title_max_length)
+        val notesLimit = resources.getInteger(R.integer.event_notes_max_length)
+        fun updateCount(input: EditText, counterId: Int, limit: Int) {
+            view.findViewById<TextView>(counterId).apply {
+                text = getString(R.string.event_character_count, input.text.length, limit)
+                setTextColor(requireContext().getColor(if (input.text.length > limit) R.color.wp_error else R.color.wp_ink))
+            }
+        }
+        titleInput.doAfterTextChanged { updateCount(titleInput, R.id.event_title_count, titleLimit) }
+        notesInput.doAfterTextChanged { updateCount(notesInput, R.id.event_notes_count, notesLimit) }
+        updateCount(titleInput, R.id.event_title_count, titleLimit)
+        updateCount(notesInput, R.id.event_notes_count, notesLimit)
         val dateButton = view.findViewById<NeoTextView>(R.id.event_date)
         val startButton = view.findViewById<NeoTextView>(R.id.event_start_time)
         val endButton = view.findViewById<NeoTextView>(R.id.event_end_time)
@@ -83,6 +99,16 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         val saveButton = view.findViewById<NeoTextView>(R.id.event_save)
         val cancelButton = view.findViewById<NeoTextView>(R.id.event_cancel)
         val heading = view.findViewById<TextView>(R.id.form_heading)
+        val retryButton = view.findViewById<View>(R.id.form_retry)
+        fun enableFields(enabled: Boolean) {
+            fun enableTree(node: View) {
+                node.isEnabled = enabled
+                if (node is ViewGroup) for (i in 0 until node.childCount) enableTree(node.getChildAt(i))
+            }
+            enableTree(view.findViewById(R.id.event_form_fields))
+            saveButton.isEnabled = enabled
+        }
+        enableFields(false)
 
         // Repeat views
         val repeatSwitch = view.findViewById<Switch>(R.id.repeat_switch)
@@ -204,136 +230,109 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         updateEndText()
         updateReminderText()
 
-        // Load default reminder preference from settings when creating a new event
-        if (!isEditing && savedInstanceState == null) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                val settings = AppGraph.eventRepository.getSettings()
-                selectedReminderOffset = settings.defaultReminderOffsetMinutes
-                updateReminderText()
-            }
-        }
-
-        // Load existing event when editing
-        if (isEditing) {
+        // Begin only after Android restores the view hierarchy. A saved Bundle does not
+        // imply that the previous asynchronous database load actually completed.
+        initializeForm = {
+            enableFields(false)
+            retryButton.visibility = View.GONE
+            errorText.visibility = View.GONE
             viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    val event = AppGraph.eventRepository.getEvent(editingEventId!!)
+                    if (isEditing) {
+                        val event = AppGraph.eventRepository.getEvent(requireNotNull(editingEventId))
+                            ?: error("Event no longer exists")
+                        existingEvent = event
+                        if (!formInitialized) {
+                            setExistingText(titleInput, event.title)
+                            setExistingText(notesInput, event.notes)
 
-                    if (event == null) {
-                        errorText.text = getString(R.string.event_details_load_error)
-                        errorText.visibility = View.VISIBLE
-                        return@launch
-                    }
+                            selectedDate = event.startDate
+                            selectedStartTime = event.startTime
+                            selectedEndTime = event.endTime
+                            selectedReminderOffset = event.reminderOffsetMinutes
 
-                    existingEvent = event
-                    saveButton.isEnabled = true
+                            // Restore repeat settings
+                            val rule = event.repeatRule
 
-                    if (savedInstanceState == null) {
-                        titleInput.setText(event.title)
-                        notesInput.setText(event.notes)
+                            // Switch is ON only if the event has a repeat frequency
+                            repeatSwitch.isChecked =
+                                rule.frequency != Frequency.NONE
 
-                        selectedDate = event.startDate
-                        selectedStartTime = event.startTime
-                        selectedEndTime = event.endTime
-                        selectedReminderOffset = event.reminderOffsetMinutes
+                            // Restore selected frequency
+                            when (rule.frequency) {
+                                Frequency.NONE -> repeatGroup.clearCheck()
+                                Frequency.DAILY -> repeatGroup.check(R.id.repeat_daily)
+                                Frequency.WEEKLY -> repeatGroup.check(R.id.repeat_weekly)
+                            }
 
-                        // Restore repeat settings
-                        val rule = event.repeatRule
+                            // Restore selected weekdays
+                            monday.isChecked = DayOfWeek.MONDAY in rule.weekdays
+                            tuesday.isChecked = DayOfWeek.TUESDAY in rule.weekdays
+                            wednesday.isChecked = DayOfWeek.WEDNESDAY in rule.weekdays
+                            thursday.isChecked = DayOfWeek.THURSDAY in rule.weekdays
+                            friday.isChecked = DayOfWeek.FRIDAY in rule.weekdays
+                            saturday.isChecked = DayOfWeek.SATURDAY in rule.weekdays
+                            sunday.isChecked = DayOfWeek.SUNDAY in rule.weekdays
 
-                        // Switch is ON only if the event has a repeat frequency
-                        repeatSwitch.isChecked =
-                            rule.frequency != Frequency.NONE
-
-                        // Restore selected frequency
-                        when (rule.frequency) {
-                            Frequency.NONE -> repeatGroup.clearCheck()
-                            Frequency.DAILY -> repeatGroup.check(R.id.repeat_daily)
-                            Frequency.WEEKLY -> repeatGroup.check(R.id.repeat_weekly)
+                            updateRepeatVisibility()
+                            updateDateText()
+                            updateStartText()
+                            updateEndText()
+                            updateReminderText()
                         }
-
-                        // Restore selected weekdays
-                        monday.isChecked = DayOfWeek.MONDAY in rule.weekdays
-                        tuesday.isChecked = DayOfWeek.TUESDAY in rule.weekdays
-                        wednesday.isChecked = DayOfWeek.WEDNESDAY in rule.weekdays
-                        thursday.isChecked = DayOfWeek.THURSDAY in rule.weekdays
-                        friday.isChecked = DayOfWeek.FRIDAY in rule.weekdays
-                        saturday.isChecked = DayOfWeek.SATURDAY in rule.weekdays
-                        sunday.isChecked = DayOfWeek.SUNDAY in rule.weekdays
-
-                        updateRepeatVisibility()
-                        updateDateText()
-                        updateStartText()
-                        updateEndText()
+                    } else if (!formInitialized) {
+                        selectedReminderOffset = AppGraph.eventRepository.getSettings().defaultReminderOffsetMinutes
                         updateReminderText()
                     }
-
+                    formInitialized = true
+                    enableFields(true)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
                 } catch (_: Exception) {
-                    errorText.text = getString(R.string.event_error_save)
+                    errorText.setText(R.string.event_form_load_error)
                     errorText.visibility = View.VISIBLE
+                    retryButton.visibility = View.VISIBLE
                 }
             }
         }
+        retryButton.setOnClickListener { initializeForm?.invoke() }
 
-        // Date picker
+        val reminderOffsets = listOf(null, 0, 5, 15, 30, 60)
+        childFragmentManager.setFragmentResultListener("pick_date", viewLifecycleOwner) { _, result ->
+            selectedDate = LocalDate.parse(result.getString(NeoDialogFragment.VALUE))
+            updateDateText()
+            errorText.visibility = View.GONE
+        }
+        childFragmentManager.setFragmentResultListener("pick_start", viewLifecycleOwner) { _, result ->
+            selectedStartTime = LocalTime.parse(result.getString(NeoDialogFragment.VALUE))
+            updateStartText()
+            errorText.visibility = View.GONE
+        }
+        childFragmentManager.setFragmentResultListener("pick_end", viewLifecycleOwner) { _, result ->
+            selectedEndTime = LocalTime.parse(result.getString(NeoDialogFragment.VALUE))
+            updateEndText()
+            errorText.visibility = View.GONE
+        }
+        childFragmentManager.setFragmentResultListener("pick_reminder", viewLifecycleOwner) { _, result ->
+            selectedReminderOffset = reminderOffsets[result.getInt(NeoDialogFragment.INDEX)]
+            updateReminderText()
+        }
+        fun showPicker(picker: NeoDialogFragment) {
+            if (childFragmentManager.findFragmentByTag("picker") == null) picker.showNow(childFragmentManager, "picker")
+        }
         dateButton.setOnClickListener {
-            DatePickerDialog(
-                requireContext(),
-                { _, year, month, day ->
-                    selectedDate = LocalDate.of(year, month + 1, day)
-                    updateDateText()
-                    errorText.visibility = View.GONE
-                },
-                selectedDate.year,
-                selectedDate.monthValue - 1,
-                selectedDate.dayOfMonth
-            ).show()
+            showPicker(NeoDialogFragment.date("pick_date", R.string.event_date_label, selectedDate))
         }
-
-        // Start time picker
         startButton.setOnClickListener {
-            TimePickerDialog(
-                requireContext(),
-                { _, hour, minute ->
-                    selectedStartTime = LocalTime.of(hour, minute)
-                    updateStartText()
-                    errorText.visibility = View.GONE
-                },
-                selectedStartTime.hour,
-                selectedStartTime.minute,
-                false
-            ).show()
+            showPicker(NeoDialogFragment.time("pick_start", R.string.event_start_time_label, selectedStartTime))
         }
-
-        // End time picker
         endButton.setOnClickListener {
-            TimePickerDialog(
-                requireContext(),
-                { _, hour, minute ->
-                    selectedEndTime = LocalTime.of(hour, minute)
-                    updateEndText()
-                    errorText.visibility = View.GONE
-                },
-                selectedEndTime.hour,
-                selectedEndTime.minute,
-                false
-            ).show()
+            showPicker(NeoDialogFragment.time("pick_end", R.string.event_end_time_label, selectedEndTime))
         }
-
-        // Reminder picker
         reminderButton.setOnClickListener {
-            val reminderOffsets = listOf(null, 0, 5, 15, 30, 60)
-            val reminderLabels = reminderOffsets.map { getReminderLabel(it) }.toTypedArray()
-            val currentIndex = reminderOffsets.indexOf(selectedReminderOffset).let { if (it >= 0) it else 0 }
-
-            AlertDialog.Builder(requireContext())
-                .setTitle(R.string.event_details_reminder)
-                .setSingleChoiceItems(reminderLabels, currentIndex) { dialog, which ->
-                    selectedReminderOffset = reminderOffsets[which]
-                    updateReminderText()
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.event_cancel, null)
-                .show()
+            showPicker(NeoDialogFragment.choices("pick_reminder", R.string.event_details_reminder,
+                reminderOffsets.map { getReminderLabel(it) }.toTypedArray(),
+                reminderOffsets.indexOf(selectedReminderOffset).coerceAtLeast(0)))
         }
 
         // Cancel
@@ -351,17 +350,23 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                 title.isBlank() ->
                     getString(R.string.event_error_title_required)
 
+                titleInput.text.length > titleLimit ->
+                    getString(R.string.event_error_title_too_long, titleLimit)
+
+                notesInput.text.length > notesLimit ->
+                    getString(R.string.event_error_notes_too_long, notesLimit)
+
                 !selectedEndTime.isAfter(selectedStartTime) ->
                     getString(R.string.event_error_time_order)
 
                 repeatSwitch.isChecked &&
                         repeatGroup.checkedRadioButtonId == -1 ->
-                    "Please choose a repeat frequency"
+                    getString(R.string.event_repeat_frequency_required)
 
                 repeatSwitch.isChecked &&
                         repeatGroup.checkedRadioButtonId == R.id.repeat_weekly &&
                         weekdayCheckBoxes.none { it.isChecked } ->
-                    "Please select at least one weekday"
+                    getString(R.string.event_repeat_weekdays_required)
 
                 else -> null
             }
@@ -412,6 +417,8 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
                     if (event.reminderOffsetMinutes != null) {
                         (activity as? MainActivity)?.requestReminderPermission()
                     }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
                 } catch (_: Exception) {
                     saveButton.isEnabled = true
                     errorText.text = getString(R.string.event_error_save)
@@ -421,8 +428,32 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         }
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        if (formInitialized && savedInstanceState != null) {
+            savedInstanceState.getString(STATE_TITLE)?.let { setExistingText(requireView().findViewById(R.id.event_title), it) }
+            savedInstanceState.getString(STATE_NOTES)?.let { setExistingText(requireView().findViewById(R.id.event_notes), it) }
+        }
+        initializeForm?.invoke()
+    }
+
+    // Existing data can predate the limits. Keep it visible and require an explicit
+    // edit instead of silently truncating the saved title or notes on load/rotation.
+    private fun setExistingText(input: EditText, text: String) {
+        val filters = input.filters
+        input.filters = emptyArray()
+        input.setText(text)
+        input.filters = filters
+    }
+
+    override fun onDestroyView() {
+        initializeForm = null
+        super.onDestroyView()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_INITIALIZED, formInitialized)
         outState.putString(STATE_DATE, selectedDate.toString())
         outState.putString(STATE_START_TIME, selectedStartTime.toString())
         outState.putString(STATE_END_TIME, selectedEndTime.toString())
@@ -433,6 +464,8 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         }
 
         view?.let { v ->
+            outState.putString(STATE_TITLE, v.findViewById<EditText>(R.id.event_title).text.toString())
+            outState.putString(STATE_NOTES, v.findViewById<EditText>(R.id.event_notes).text.toString())
             val repeatSwitch = v.findViewById<Switch>(R.id.repeat_switch)
             val repeatGroup = v.findViewById<RadioGroup>(R.id.repeat_frequency_group)
             val monday = v.findViewById<CheckBox>(R.id.day_monday)
@@ -472,6 +505,9 @@ class EventFormFragment : Fragment(R.layout.fragment_event_form) {
         private const val ARG_DATE = "event_date"
         private const val ARG_EVENT_ID = "event_id"
 
+        private const val STATE_TITLE = "state_title"
+        private const val STATE_NOTES = "state_notes"
+        private const val STATE_INITIALIZED = "state_form_initialized"
         private const val STATE_DATE = "state_selected_date"
         private const val STATE_START_TIME = "state_selected_start_time"
         private const val STATE_END_TIME = "state_selected_end_time"

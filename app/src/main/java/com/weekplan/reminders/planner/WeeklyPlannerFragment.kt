@@ -33,6 +33,8 @@ class WeeklyPlannerFragment : Fragment(R.layout.fragment_weekly_planner) {
     private var scrolledWeek: LocalDate? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        scrolledWeek = savedInstanceState?.getString("scrolled_week")?.let(LocalDate::parse) ?: scrolledWeek
         val list = view.findViewById<RecyclerView>(R.id.planner_list)
         val weekRange = view.findViewById<TextView>(R.id.week_range)
         val weekChip = view.findViewById<NeoTextView>(R.id.week_chip)
@@ -80,6 +82,11 @@ class WeeklyPlannerFragment : Fragment(R.layout.fragment_weekly_planner) {
                 viewModel.state.collect { render(it) }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        scrolledWeek?.let { outState.putString("scrolled_week", it.toString()) }
     }
 
     override fun onResume() {

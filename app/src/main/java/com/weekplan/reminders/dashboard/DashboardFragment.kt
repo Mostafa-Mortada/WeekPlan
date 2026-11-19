@@ -88,6 +88,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
             when (state.status) {
                 DashboardStatus.LOADING -> {
+                    eventsList.visibility = View.GONE
                     loadingBar.visibility = View.VISIBLE
                     emptyCard.visibility = View.GONE
                     errorCard.visibility = View.GONE
@@ -96,6 +97,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
                     countText.text = getString(R.string.planner_badge_today)
                 }
                 DashboardStatus.ERROR -> {
+                    eventsList.visibility = View.GONE
                     loadingBar.visibility = View.GONE
                     emptyCard.visibility = View.GONE
                     errorCard.visibility = View.VISIBLE

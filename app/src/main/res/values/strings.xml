@@ -51,4 +51,14 @@
     <string name="reminder_channel_description">Notifications for upcoming events</string>
     <string name="reminder_notification_time">Starts %1$s</string>
     <string name="reminder_notification_started">Started %1$s</string>
+    <string name="settings_load_error">Couldn’t load your reminder preference. Try again.</string>
+    <string name="settings_save_error">Couldn’t save this preference. Your previous choice is still selected. Try selecting it again.</string>
+    <string name="settings_storage_retry">Try again</string>
+    <string name="dialog_done">Done</string>
+    <string name="event_repeat_frequency_required">Please choose a repeat frequency.</string>
+    <string name="event_repeat_weekdays_required">Please select at least one weekday.</string>
+    <string name="event_form_load_error">Couldn’t load this form. Your changes have been kept. Try again.</string>
+    <string name="event_character_count">%1$d / %2$d</string>
+    <string name="event_error_title_too_long">Keep the title within %1$d characters.</string>
+    <string name="event_error_notes_too_long">Keep the notes within %1$d characters.</string>
 </resources>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="6dp"
+    android:clipToPadding="false">
+    <com.weekplan.reminders.ui.NeoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:neoFill="@color/wp_paper"
+        app:neoStroke="2dp"
+        app:neoShadow="4dp">
+        <TextView
+            android:id="@+id/dialog_title"
+            style="@style/WP.Text.Display"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="22sp" />
+        <TextView
+            android:id="@+id/dialog_message"
+            style="@style/WP.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+        <DatePicker
+            android:id="@+id/dialog_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:calendarViewShown="false"
+            android:datePickerMode="spinner"
+            android:visibility="gone" />
+        <TimePicker
+            android:id="@+id/dialog_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:timePickerMode="spinner"
+            android:visibility="gone" />
+        <RadioGroup
+            android:id="@+id/dialog_choices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/dialog_cancel"
+                style="@style/WP.Text.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/event_cancel"
+                app:neoFill="@color/wp_paper"
+                app:neoShadow="2dp" />
+            <com.weekplan.reminders.ui.NeoTextView
+                android:id="@+id/dialog_confirm"
+                style="@style/WP.Text.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_done"
+                app:neoFill="@color/wp_yellow"
+                app:neoShadow="2dp" />
+        </LinearLayout>
+    </com.weekplan.reminders.ui.NeoLinearLayout>
+</ScrollView>
